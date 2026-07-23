@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.GlyphLayout;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -21,6 +22,8 @@ import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.math.Vector3;
+import com.badlogic.gdx.utils.JsonReader;
+import com.badlogic.gdx.utils.JsonValue;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -77,15 +80,35 @@ public class GameplayScreen implements Screen, InputProcessor {
     private Texture kamarKostTexture;
     private Texture kostOutsideTexture;
     private Texture jalanRayaTexture;
+    private Texture kedaiKopiTexture;
+    private Texture jalanSetapakTexture;
+    private Texture jalanDanauTexture;
+    private Texture luarRuangStudioTexture;
+    private Texture dalamStudioTexture;
+    private Texture ukmSeniTexture;
+    private Texture tamanKampusTexture;
+    private Texture kantinTexture;
+    private Texture lorong1Texture;
+    private Texture lorong2Texture;
 
     // EXPLORATION_STATE: Sidescrolling character controller
     private Array<Texture> walkTextures;
     private Array<Texture> idleTextures;
     private Array<Texture> claraIdleTextures;
+    private Array<Texture> bagasIdleTextures;
 
     private Animation<TextureRegion> walkAnimation;
     private Animation<TextureRegion> idleAnimation;
     private Animation<TextureRegion> claraIdleAnimation;
+    private Animation<TextureRegion> raniaIdleAnimation;
+    private Animation<TextureRegion> sherlyIdleAnimation;
+    private Animation<TextureRegion> bagasIdleAnimation;
+    private float raniaX = 300f;
+    private float sherlyX = 500f;
+    private float bagasX = 640f;
+    private boolean nearRania = false;
+    private boolean nearSherly = false;
+    private boolean nearBagas = false;
 
     private float rakshaX = 100f;
     private float rakshaY = 120f;
@@ -94,7 +117,7 @@ public class GameplayScreen implements Screen, InputProcessor {
     private boolean rakshaFacingRight = true;
 
     // Exploration zone system (each zone is a separate room with its own background)
-    private enum ExplorationZone { KOST, KOST_OUTSIDE, WARKOP, KAMPUS }
+    private enum ExplorationZone { KOST, KOST_OUTSIDE, WARKOP, TAMAN_KAMPUS, KANTIN, LORONG_1, LORONG_2, KAMPUS, KEDAI_KOPI, STUDIO_SENI, JALAN_SETAPAK, JALAN_DANAU, LUAR_RUANG_STUDIO, DALAM_STUDIO, UKM_MUSIK }
     private ExplorationZone currentZone = ExplorationZone.KOST;
 
     // Zone transition loading screen state
@@ -110,6 +133,15 @@ public class GameplayScreen implements Screen, InputProcessor {
     private boolean nearBed = false;
     private boolean nearClara = false;
     private boolean nearKostGate = false;
+    private boolean nearJalanTanah = false;
+    private boolean nearStudioDoor = false;
+    private boolean nearStudioExit = false;
+    private boolean nearKantinDoor = false;
+    private boolean nearKantinExit = false;
+    private boolean nearUkmMusikDoor = false;
+    private boolean nearUkmMusikExit = false;
+    private boolean nearUkmSeniDoor = false;
+    private boolean nearStudioSeniExit = false;
     // Context tracking for rhythm game completion
     private boolean rhythmFromGuitarPractice = false;
 
@@ -124,15 +156,42 @@ public class GameplayScreen implements Screen, InputProcessor {
     // Preprocessed dialogue states
     private String currentSpeakerName = "";
     private String currentDialogueText = "";
-    private String rakshaExpression = "biasa aja";
-    private String claraExpression = "biasa aja";
-    private String sherlyExpression = "biasa aja";
-    private String activeRightCharacter = "Clara";
+    private String rakshaExpression = "MAHASISWA_biasa aja";
+    private String claraExpression = "MAHASISWA_biasa aja";
+    private String sherlyExpression = "MAHASISWA_biasa aja";
+    private String raniaExpression = "MAHASISWA_biasa aja";
+    private String bagasExpression = "MAHASISWA_biasa aja";
+    private String activeRightCharacter = "None";
     private Map<String, Map<String, Texture>> expressionTextures;
+    private Map<String, Texture> backgroundMap = new HashMap<>();
+
+    // Movie Credits System
+    private static class CreditSection {
+        public String header;
+        public Array<String> names = new Array<>();
+    }
+    private String creditsTitle = "ECHO SUMMER";
+    private String creditsSubtitle = "";
+    private String creditsClosingQuote = "";
+    private String creditsCopyright = "";
+    private Array<CreditSection> creditsList = new Array<>();
+    private float creditsScrollY = -100f;
+    private boolean creditsLoaded = false;
+
+    // Save Game state
+    private String saveFileName = "savegame.dat";
+    private boolean isSaveOverlayActive = false;
+    private float saveSuccessTimer = 0f;
+    private int savedSlotNum = 1;
 
     // RHYTHM_STATE: Engine
     private RhythmGame rhythmGame;
     private Music rhythmMusic;
+    private boolean rhythmFromBandPractice = false;
+
+    private boolean isPracticeDay(int day) {
+        return day == 20 || day == 18 || day == 15 || day == 12;
+    }
 
     // Cinematic Transition Variables
     private int transFromDay;
@@ -150,6 +209,13 @@ public class GameplayScreen implements Screen, InputProcessor {
     public GameplayScreen(Main game, boolean isLoadGame) {
         this.game = game;
         this.isLoadGame = isLoadGame;
+        this.saveFileName = "savegame.dat";
+    }
+
+    public GameplayScreen(Main game, boolean isLoadGame, String saveFileName) {
+        this.game = game;
+        this.isLoadGame = isLoadGame;
+        this.saveFileName = saveFileName;
     }
 
     @Override
@@ -198,7 +264,7 @@ public class GameplayScreen implements Screen, InputProcessor {
             tex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
             prologTextures.add(tex);
         }
-        studioTexture = new Texture(Gdx.files.internal("background/background_studio.jpg"));
+        studioTexture = new Texture(Gdx.files.internal("background/background_ukm_musik.jpg"));
         studioTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
 
         skyTexture = new Texture(Gdx.files.internal("background.png"));
@@ -213,13 +279,61 @@ public class GameplayScreen implements Screen, InputProcessor {
         jalanRayaTexture = new Texture(Gdx.files.internal("background/background_jalan_raya.png"));
         jalanRayaTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
 
+        kedaiKopiTexture = new Texture(Gdx.files.internal("background/background_kedai_kopi.png"));
+        kedaiKopiTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        jalanSetapakTexture = new Texture(Gdx.files.internal("background/background_jalan_setapak.png"));
+        jalanSetapakTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        jalanDanauTexture = new Texture(Gdx.files.internal("background/background_jalan_danau.png"));
+        jalanDanauTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        luarRuangStudioTexture = new Texture(Gdx.files.internal("background/background_luar_ruang_studio.png"));
+        luarRuangStudioTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        dalamStudioTexture = new Texture(Gdx.files.internal("background/background_dalam_studio.png"));
+        dalamStudioTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        ukmSeniTexture = new Texture(Gdx.files.internal("background/background_ukm_seni.png"));
+        ukmSeniTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        tamanKampusTexture = new Texture(Gdx.files.internal("background/background_taman_kampus.png"));
+        tamanKampusTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        kantinTexture = new Texture(Gdx.files.internal("background/background_kantin.png"));
+        kantinTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        lorong1Texture = new Texture(Gdx.files.internal("background/background_lorong_1.png"));
+        lorong1Texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+        lorong2Texture = new Texture(Gdx.files.internal("background/background_lorong_2.png"));
+        lorong2Texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+
         // Load GameState
         if (isLoadGame) {
-            gameState = SaveManager.loadGame();
+            gameState = SaveManager.loadGame(saveFileName);
+            
+            // Restore loaded state
+            state = GameplayState.valueOf(gameState.gameplayState);
+            currentZone = ExplorationZone.valueOf(gameState.currentZone);
+            rakshaX = gameState.rakshaX;
+            
+            // Sync background to loaded zone if in exploration
+            if (state == GameplayState.EXPLORATION_STATE) {
+                switch (currentZone) {
+                    case KOST:          currentBackground = kamarKostTexture; break;
+                    case KOST_OUTSIDE:  currentBackground = kostOutsideTexture; break;
+                    case WARKOP:        currentBackground = jalanRayaTexture; break;
+                    case TAMAN_KAMPUS:  currentBackground = tamanKampusTexture; break;
+                    case KANTIN:        currentBackground = kantinTexture; break;
+                    case LORONG_1:      currentBackground = lorong1Texture; break;
+                    case LORONG_2:      currentBackground = lorong2Texture; break;
+                    case KEDAI_KOPI:    currentBackground = kedaiKopiTexture; break;
+                    case KAMPUS:        currentBackground = studioTexture; break;
+                    case STUDIO_SENI:   currentBackground = ukmSeniTexture; break;
+                    case JALAN_SETAPAK: currentBackground = jalanSetapakTexture; break;
+                    case JALAN_DANAU:   currentBackground = jalanDanauTexture; break;
+                    case LUAR_RUANG_STUDIO: currentBackground = luarRuangStudioTexture; break;
+                    case DALAM_STUDIO:  currentBackground = dalamStudioTexture; break;
+                    case UKM_MUSIK:     currentBackground = studioTexture; break;
+                    default:            currentBackground = studioTexture; break;
+                }
+            }
         } else {
             gameState = new GameState();
             gameState.reset();
-            SaveManager.saveGame(gameState);
+            SaveManager.saveGame(gameState, saveFileName);
         }
 
         // Initialize story graph
@@ -282,6 +396,60 @@ public class GameplayScreen implements Screen, InputProcessor {
             claraFrames[i - 1] = new TextureRegion(tex);
         }
         claraIdleAnimation = new Animation<>(0.12f, claraFrames);
+        claraIdleAnimation.setPlayMode(Animation.PlayMode.LOOP);
+
+        // Rania Idle
+        Array<TextureRegion> raniaFrames = new Array<>();
+        for (int i = 1; i <= 16; i++) {
+            String path = "sprite/IDLE_RANIA/pose_" + String.format("%02d", i) + ".png";
+            if (Gdx.files.internal(path).exists()) {
+                Texture tex = new Texture(Gdx.files.internal(path));
+                tex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+                raniaFrames.add(new TextureRegion(tex));
+            }
+        }
+        if (raniaFrames.size > 0) {
+            raniaIdleAnimation = new Animation<>(0.25f, raniaFrames);
+            raniaIdleAnimation.setPlayMode(Animation.PlayMode.LOOP);
+        } else {
+            Gdx.app.error("GameplayScreen", "No rania idle frames found!");
+        }
+
+        // Sherly Idle
+        Array<TextureRegion> sherlyFrames = new Array<>();
+        for (int i = 1; i <= 16; i++) {
+            String path = "sprite/IDLE_SHERLY/pose_" + String.format("%02d", i) + ".png";
+            if (Gdx.files.internal(path).exists()) {
+                Texture tex = new Texture(Gdx.files.internal(path));
+                tex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+                sherlyFrames.add(new TextureRegion(tex));
+            }
+        }
+        if (sherlyFrames.size > 0) {
+            sherlyIdleAnimation = new Animation<>(0.4f, sherlyFrames);
+            sherlyIdleAnimation.setPlayMode(Animation.PlayMode.LOOP);
+        } else {
+            Gdx.app.error("GameplayScreen", "No sherly idle frames found!");
+        }
+
+        // Bagas Idle
+        bagasIdleTextures = new Array<>();
+        Array<TextureRegion> bagasFrames = new Array<>();
+        for (int i = 1; i <= 16; i++) {
+            String path = String.format("sprite/IDLE_BAGAS/pose_%02d.png", i);
+            if (Gdx.files.internal(path).exists()) {
+                Texture tex = new Texture(Gdx.files.internal(path));
+                tex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+                bagasIdleTextures.add(tex);
+                bagasFrames.add(new TextureRegion(tex));
+            }
+        }
+        if (bagasFrames.size > 0) {
+            bagasIdleAnimation = new Animation<>(0.3f, bagasFrames);
+            bagasIdleAnimation.setPlayMode(Animation.PlayMode.LOOP);
+        } else {
+            Gdx.app.error("GameplayScreen", "No bagas idle frames found!");
+        }
 
         // Initialize Rhythm engine
         rhythmGame = new RhythmGame();
@@ -290,13 +458,23 @@ public class GameplayScreen implements Screen, InputProcessor {
         loadExpressionTextures();
 
         // Load starting node
-        loadNode(gameState.dialogueNodeId);
+        if (isLoadGame) {
+            loadNodeBackgroundOnly(gameState.dialogueNodeId);
+            if (state == GameplayState.DIALOGUE_STATE) {
+                loadNode(gameState.dialogueNodeId);
+            } else {
+                currentNode = storyNodes.get(gameState.dialogueNodeId);
+            }
+        } else {
+            loadNode(gameState.dialogueNodeId);
+        }
     }
 
     private void loadNode(String nodeId) {
         if (nodeId == null || !storyNodes.containsKey(nodeId)) {
             Gdx.app.error("GameplayScreen", "Dialogue node not found: " + nodeId);
-            game.setScreen(new MainMenuScreen(game));
+            state = GameplayState.EXPLORATION_STATE;
+            currentNode = null;
             return;
         }
 
@@ -338,10 +516,11 @@ public class GameplayScreen implements Screen, InputProcessor {
         }
 
         // Sync HUD properties
+        syncChapterWithDay();
         remainingDays = gameState.day;
         updateTimeOfDay();
 
-        // Determine background
+        // Determine background: Prologue / Endings / Bus cutscenes use fixed assets; all gameplay dialogues match MC's current zone!
         if (nodeId.equals("PROLOG_START")) {
             currentBackground = prologTextures.get(0);
         } else if (nodeId.equals("PROLOG_1")) {
@@ -352,19 +531,32 @@ public class GameplayScreen implements Screen, InputProcessor {
             currentBackground = prologTextures.get(3);
         } else if (nodeId.startsWith("PROLOG_")) {
             currentBackground = prologTextures.get(4);
-        } else if (nodeId.equals("CH1_INTRO") || nodeId.equals("CH1_DAY_NEXT")) {
-            currentBackground = kostOutsideTexture;
-        } else if (nodeId.equals("CH1_CHOICE_C_RESULT") || nodeId.equals("CH1_PRACTICE_END") || nodeId.equals("CH3_POST_RESULT_1") || nodeId.equals("CH3_ALDO_RESULT_1")) {
-            currentBackground = kamarKostTexture;
-        } else if (nodeId.startsWith("CH3_BUS_")) {
-            currentBackground = jalanRayaTexture;
         } else if (nodeId.startsWith("END_") || nodeId.startsWith("CREDITS_") || nodeId.equals("GAME_OVER")) {
             currentBackground = skyTexture;
+        } else if (nodeId.startsWith("CH3_BUS_")) {
+            currentBackground = jalanRayaTexture;
         } else {
-            currentBackground = studioTexture;
+            // Guarantee background always matches MC's current location during gameplay/exploration!
+            Texture zoneBg = getZoneTexture(currentZone);
+            if (zoneBg != null) {
+                currentBackground = zoneBg;
+            } else {
+                Texture jsonBg = currentNode != null ? getBackgroundTexture(currentNode.background) : null;
+                currentBackground = jsonBg != null ? jsonBg : kamarKostTexture;
+            }
         }
 
-        if (currentBackground == kamarKostTexture || currentBackground == kostOutsideTexture) {
+        if (currentBackground == kamarKostTexture || currentBackground == kostOutsideTexture || (nodeId != null && (nodeId.startsWith("BLOCK_") || nodeId.startsWith("PHONE_")))) {
+            activeRightCharacter = "None";
+        } else if (nodeId.contains("SHERLY")) {
+            activeRightCharacter = "Sherly";
+        } else if (nodeId.contains("RANIA")) {
+            activeRightCharacter = "Rania";
+        } else if (nodeId.contains("BAGAS")) {
+            activeRightCharacter = "Bagas";
+        } else if (nodeId.contains("CLARA") || nodeId.startsWith("PROLOG_") || currentZone == ExplorationZone.DALAM_STUDIO || currentZone == ExplorationZone.UKM_MUSIK || currentZone == ExplorationZone.KAMPUS) {
+            activeRightCharacter = "Clara";
+        } else {
             activeRightCharacter = "None";
         }
 
@@ -380,11 +572,36 @@ public class GameplayScreen implements Screen, InputProcessor {
             }
             state = GameplayState.EXPLORATION_STATE;
             currentZone = ExplorationZone.KOST; // always start fresh day at kost
+            currentBackground = kamarKostTexture;
             rakshaX = 100f;
             rakshaFacingRight = true;
             isZoneTransitioning = false;
             currentNode.text = "Hari ke-" + gameState.day + " menjelang festival.\nSisa uang: Rp" + gameState.money + ".\nBagaimana aku menghabiskan hari ini?";
+        } else if (nodeId.equals("CH2_DAY_LOOP")) {
+            state = GameplayState.EXPLORATION_STATE;
+            currentZone = ExplorationZone.KOST;
+            currentBackground = kamarKostTexture;
+            rakshaX = 100f;
+            rakshaFacingRight = true;
+            isZoneTransitioning = false;
+        } else if (nodeId.equals("CH3_DAY_LOOP")) {
+            state = GameplayState.EXPLORATION_STATE;
+            currentZone = ExplorationZone.KOST;
+            currentBackground = kamarKostTexture;
+            rakshaX = 100f;
+            rakshaFacingRight = true;
+            isZoneTransitioning = false;
+        } else if (nodeId.equals("CH4_DAY_LOOP")) {
+            state = GameplayState.EXPLORATION_STATE;
+            currentZone = ExplorationZone.KOST;
+            currentBackground = kamarKostTexture;
+            rakshaX = 100f;
+            rakshaFacingRight = true;
+            isZoneTransitioning = false;
         } else {
+            if (state == GameplayState.EXPLORATION_STATE) {
+                activeRightCharacter = "None";
+            }
             state = GameplayState.DIALOGUE_STATE;
         }
 
@@ -417,7 +634,10 @@ public class GameplayScreen implements Screen, InputProcessor {
         // Autosave at transitions
         if (nodeId.endsWith("_TRANSITION") || nodeId.equals("CH1_DAY_NEXT") || nodeId.equals("CH1_INTRO") || 
             nodeId.equals("CH2_START") || nodeId.equals("CH3_START") || nodeId.equals("CH4_START")) {
-            SaveManager.saveGame(gameState);
+            gameState.currentZone = currentZone.name();
+            gameState.rakshaX = rakshaX;
+            gameState.gameplayState = state.name();
+            SaveManager.saveGame(gameState, saveFileName);
         }
     }
 
@@ -444,8 +664,20 @@ public class GameplayScreen implements Screen, InputProcessor {
         return text;
     }
 
+    private void syncChapterWithDay() {
+        if (gameState == null) return;
+        if (gameState.day <= 20 && gameState.day >= 10 && "CHAPTER_1".equals(gameState.chapter)) {
+            gameState.chapter = "CHAPTER_2";
+        } else if (gameState.day <= 9 && gameState.day >= 1 && ("CHAPTER_1".equals(gameState.chapter) || "CHAPTER_2".equals(gameState.chapter))) {
+            gameState.chapter = "CHAPTER_3";
+        } else if (gameState.day <= 0 && !"CHAPTER_4".equals(gameState.chapter)) {
+            gameState.chapter = "CHAPTER_4";
+        }
+    }
+
     private void updateTimeOfDay() {
         if (gameState == null) return;
+        syncChapterWithDay();
         if (gameState.chapter.equals("PROLOGUE")) {
             timeOfDay = "SORE";
         } else if (gameState.chapter.equals("CHAPTER_1")) {
@@ -477,6 +709,9 @@ public class GameplayScreen implements Screen, InputProcessor {
         GameplayState drawState = state;
         if (state == GameplayState.PAUSED_STATE) {
             drawState = previousState;
+            if (saveSuccessTimer > 0) {
+                saveSuccessTimer -= delta;
+            }
         }
         
         switch (drawState) {
@@ -500,7 +735,11 @@ public class GameplayScreen implements Screen, InputProcessor {
 
         // 4. Paused / Phone Overlays
         if (state == GameplayState.PAUSED_STATE) {
-            renderPauseMenu();
+            if (isSaveOverlayActive) {
+                renderSaveOverlay();
+            } else {
+                renderPauseMenu();
+            }
         } else if (state == GameplayState.PHONE_STATE) {
             renderPhoneMenu();
         }
@@ -528,6 +767,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         shapeRenderer.setColor(Color.LIGHT_GRAY);
         // Resume & Exit
         shapeRenderer.rect(bx, my + 350, btnW, btnH); // Resume
+        shapeRenderer.rect(bx, my + 95,  btnW, 45);   // Save Game
         shapeRenderer.rect(bx, my + 40,  btnW, btnH); // Exit
         
         // Volume
@@ -559,6 +799,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         
         choiceFont.setColor(Color.BLACK);
         choiceFont.draw(game.getBatch(), "Resume", bx, my + 350 + 35, btnW, Align.center, false);
+        choiceFont.draw(game.getBatch(), "Simpan Permainan", bx, my + 95 + 32, btnW, Align.center, false);
         choiceFont.draw(game.getBatch(), "Exit to Menu", bx, my + 40 + 35, btnW, Align.center, false);
         
         choiceFont.draw(game.getBatch(), "-", bx - 60, my + 260 + 28, 40, Align.center, false);
@@ -575,74 +816,220 @@ public class GameplayScreen implements Screen, InputProcessor {
         game.getBatch().end();
     }
 
+    // Phone sub-screen: 0 = app list, 1 = Echo Summer group chat
+    private int phoneChatScroll = 0;
+
     private void renderPhoneMenu() {
+        syncChapterWithDay();
+        boolean isCh2 = "CHAPTER_2".equals(gameState.chapter) || (gameState.day <= 20 && gameState.day >= 10);
+        SpriteBatch batch = game.getBatch();
+
+        // ── Dim background ──────────────────────────────────────────
         Gdx.gl.glEnable(GL20.GL_BLEND);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(new Color(0f, 0f, 0f, 0.6f));
+        shapeRenderer.setColor(0f, 0f, 0f, 0.65f);
         shapeRenderer.rect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
-        
-        float phoneW = 350f;
-        float phoneH = 600f;
+
+        // ── Phone body ───────────────────────────────────────────────
+        float phoneW = 360f;
+        float phoneH = 620f;
         float px = (VIRTUAL_WIDTH - phoneW) / 2f;
         float py = (VIRTUAL_HEIGHT - phoneH) / 2f;
-        
-        // Phone body
-        shapeRenderer.setColor(new Color(0.9f, 0.9f, 0.9f, 1f));
+
+        // Outer shell
+        shapeRenderer.setColor(0.15f, 0.15f, 0.18f, 1f);
+        shapeRenderer.rect(px - 6, py - 6, phoneW + 12, phoneH + 12);
+        // Screen
+        shapeRenderer.setColor(0.08f, 0.09f, 0.12f, 1f);
         shapeRenderer.rect(px, py, phoneW, phoneH);
-        
-        // Phone screen
-        shapeRenderer.setColor(new Color(0.1f, 0.1f, 0.1f, 1f));
-        shapeRenderer.rect(px + 10, py + 10, phoneW - 20, phoneH - 20);
-        
-        // Header
-        shapeRenderer.setColor(new Color(0.2f, 0.4f, 0.8f, 1f));
-        shapeRenderer.rect(px + 10, py + phoneH - 70, phoneW - 20, 60);
-        
-        // Items
+
         if (phoneScreen == 0) {
-            // Contacts
-            shapeRenderer.setColor(new Color(0.2f, 0.2f, 0.2f, 1f));
-            for (int i = 0; i < 4; i++) {
-                shapeRenderer.rect(px + 20, py + phoneH - 140 - (i * 70), phoneW - 40, 60);
-            }
+            // ── App List Screen ─────────────────────────────────────
+            // Status bar
+            shapeRenderer.setColor(0.05f, 0.05f, 0.08f, 1f);
+            shapeRenderer.rect(px, py + phoneH - 30, phoneW, 30);
+
+            // Chat app icon row
+            shapeRenderer.setColor(0.18f, 0.55f, 0.34f, 1f); // green chat icon
+            shapeRenderer.rect(px + 20, py + phoneH - 110, 70, 70);
+
         } else {
-            // Chat options
-            shapeRenderer.setColor(new Color(0.15f, 0.5f, 0.15f, 1f));
-            shapeRenderer.rect(px + 20, py + 90, phoneW - 40, 50); // Latihan
-            if (phoneScreen == 1) { // Clara
-                shapeRenderer.setColor(new Color(0.6f, 0.15f, 0.3f, 1f));
-                shapeRenderer.rect(px + 20, py + 30, phoneW - 40, 50); // Date
+            // ── Group Chat Screen ───────────────────────────────────
+            // Top bar
+            shapeRenderer.setColor(0.12f, 0.35f, 0.22f, 1f);
+            shapeRenderer.rect(px, py + phoneH - 55, phoneW, 55);
+
+            // Back arrow area
+            shapeRenderer.setColor(0.08f, 0.25f, 0.16f, 1f);
+            shapeRenderer.rect(px + 5, py + phoneH - 45, 40, 35);
+
+            // Chat bubbles area (dark)
+            shapeRenderer.setColor(0.10f, 0.11f, 0.14f, 1f);
+            shapeRenderer.rect(px, py + 55, phoneW, phoneH - 110);
+
+            // Bottom bar
+            shapeRenderer.setColor(0.05f, 0.05f, 0.08f, 1f);
+            shapeRenderer.rect(px, py, phoneW, 55);
+
+            // Draw chat bubbles (left = others, right = Raksha)
+            // Messages:
+            // Bagas (left):  "Oi Echo Summer! Latihan bareng yuk di studio hari ini?"
+            // Rania  (left): "Siapp! Aku udah di sana dari tadi hehe"
+            // Clara  (left): "Otw! 5 menit lagi nyampe~"
+            // Sherly (left): "Jangan lupa partiturnnya dibawa ya, gue yang periksa"
+            // Raksha (right — only if chatRead): "Siap semua! Otw studio sekarang!"
+
+            // bubble colors
+            Color bubbleOther = new Color(0.18f, 0.20f, 0.25f, 1f);
+            Color bubbleRaksha = new Color(0.10f, 0.38f, 0.22f, 1f);
+
+            // Draw bubbles stacked from top to bottom (oldest at top, newest at bottom)
+            float bW = phoneW - 80f;
+            float bH = 44f;
+            float bPad = 10f;
+            float topY = py + phoneH - 55f - 15f;
+            float bY1 = topY - bH;
+            float bY2 = bY1 - (bH + bPad);
+            float bY3 = bY2 - (bH + bPad);
+            float bY4 = bY3 - (bH + bPad);
+            float bY5 = bY4 - (bH + bPad);
+
+            if (isCh2) {
+                // Bubble 1 (Bagas - Oldest at top)
+                shapeRenderer.setColor(new Color(0.20f, 0.25f, 0.38f, 1f));
+                shapeRenderer.rect(px + 14, bY1, bW, bH);
+
+                // Bubble 2 (Rania)
+                shapeRenderer.setColor(bubbleOther);
+                shapeRenderer.rect(px + 14, bY2, bW, bH);
+
+                // Bubble 3 (Clara)
+                shapeRenderer.setColor(bubbleOther);
+                shapeRenderer.rect(px + 14, bY3, bW, bH);
+
+                // Bubble 4 (Sherly)
+                shapeRenderer.setColor(bubbleOther);
+                shapeRenderer.rect(px + 14, bY4, bW, bH);
+
+                // Bubble 5 (Raksha reply - Newest at bottom)
+                if (gameState.ch2ChatRead) {
+                    shapeRenderer.setColor(bubbleRaksha);
+                    shapeRenderer.rect(px + 14, bY5, bW, bH);
+                }
+
+                // "Read" button if not yet read
+                if (!gameState.ch2ChatRead) {
+                    shapeRenderer.setColor(0.20f, 0.60f, 0.35f, 1f);
+                    shapeRenderer.rect(px + phoneW / 2f - 70f, py + 10, 140f, 38f);
+                }
+            } else {
+                // Non-ch2: show generic group chat placeholder
+                shapeRenderer.setColor(bubbleOther);
+                shapeRenderer.rect(px + 14, bY1, bW, bH);
             }
-            // Back button
-            shapeRenderer.setColor(Color.DARK_GRAY);
-            shapeRenderer.rect(px + 20, py + phoneH - 120, 80, 40);
         }
-        
+
         shapeRenderer.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
-        
-        game.getBatch().begin();
+
+        // ── Text Layer ───────────────────────────────────────────────
+        batch.begin();
+        choiceFont.getData().setScale(0.85f);
+
         if (phoneScreen == 0) {
+            // Status bar time
             choiceFont.setColor(Color.WHITE);
-            choiceFont.draw(game.getBatch(), "Contacts", px, py + phoneH - 30, phoneW, Align.center, false);
-            
-            choiceFont.draw(game.getBatch(), "Clara", px + 40, py + phoneH - 100);
-            choiceFont.draw(game.getBatch(), "Bagas", px + 40, py + phoneH - 170);
-            choiceFont.draw(game.getBatch(), "Rania", px + 40, py + phoneH - 240);
-            choiceFont.draw(game.getBatch(), "Sherly", px + 40, py + phoneH - 310);
+            choiceFont.draw(batch, "10:45", px + phoneW - 60, py + phoneH - 8);
+
+            // App label
+            choiceFont.setColor(new Color(0.2f, 1f, 0.5f, 1f));
+            choiceFont.draw(batch, "Chat", px + 24, py + phoneH - 50);
+
+            choiceFont.setColor(Color.WHITE);
+            choiceFont.draw(batch, "Echo Summer", px + 100, py + phoneH - 65);
+            choiceFont.getData().setScale(0.7f);
+            choiceFont.setColor(Color.LIGHT_GRAY);
+            choiceFont.draw(batch, "Bagas, Rania, Clara, Sherly, Raksha", px + 100, py + phoneH - 85);
+
+            choiceFont.getData().setScale(0.75f);
+            choiceFont.setColor(Color.LIGHT_GRAY);
+            choiceFont.draw(batch, "[TAB / ESC] Tutup   [ENTER] Buka Chat", px + 10, py + 20);
+
         } else {
-            String name = phoneScreen == 1 ? "Clara" : (phoneScreen == 2 ? "Bagas" : (phoneScreen == 3 ? "Rania" : "Sherly"));
+            // Top bar title
+            choiceFont.getData().setScale(0.9f);
             choiceFont.setColor(Color.WHITE);
-            choiceFont.draw(game.getBatch(), name, px, py + phoneH - 30, phoneW, Align.center, false);
-            
-            choiceFont.draw(game.getBatch(), "< Back", px + 30, py + phoneH - 95);
-            
-            choiceFont.draw(game.getBatch(), "Ajak Latihan (-1 Hari)", px, py + 125, phoneW, Align.center, false);
-            if (phoneScreen == 1) {
-                choiceFont.draw(game.getBatch(), "Ajak Date Personal", px, py + 65, phoneW, Align.center, false);
+            choiceFont.draw(batch, "< Echo Summer", px + 10, py + phoneH - 18);
+            choiceFont.getData().setScale(0.65f);
+            choiceFont.setColor(new Color(0.6f, 1f, 0.6f, 1f));
+            choiceFont.draw(batch, "Bagas, Rania, Clara, Sherly, Raksha", px + 14, py + phoneH - 38);
+
+            float bW = phoneW - 80f;
+            float bH = 44f;
+            float bPad = 10f;
+            float topY = py + phoneH - 55f - 15f;
+            float bY1 = topY - bH;
+            float bY2 = bY1 - (bH + bPad);
+            float bY3 = bY2 - (bH + bPad);
+            float bY4 = bY3 - (bH + bPad);
+            float bY5 = bY4 - (bH + bPad);
+            choiceFont.getData().setScale(0.72f);
+
+            if (isCh2) {
+                // Bubble 1 (Bagas - Oldest at top)
+                choiceFont.setColor(new Color(0.5f, 0.75f, 1f, 1f));
+                choiceFont.draw(batch, "Bagas:", px + 20, bY1 + bH - 6);
+                choiceFont.setColor(Color.WHITE);
+                choiceFont.draw(batch, "Oi! Latihan bareng yuk di studio hari ini?", px + 20, bY1 + bH - 24);
+
+                // Bubble 2 (Rania)
+                choiceFont.setColor(new Color(1f, 0.75f, 0.85f, 1f));
+                choiceFont.draw(batch, "Rania:", px + 20, bY2 + bH - 6);
+                choiceFont.setColor(Color.WHITE);
+                choiceFont.draw(batch, "Siapp! Aku udah di sana dari tadi hehe", px + 20, bY2 + bH - 24);
+
+                // Bubble 3 (Clara)
+                choiceFont.setColor(new Color(1f, 0.9f, 0.5f, 1f));
+                choiceFont.draw(batch, "Clara:", px + 20, bY3 + bH - 6);
+                choiceFont.setColor(Color.WHITE);
+                choiceFont.draw(batch, "Otw! 5 menit lagi nyampe~", px + 20, bY3 + bH - 24);
+
+                // Bubble 4 (Sherly)
+                choiceFont.setColor(new Color(0.85f, 0.5f, 1f, 1f));
+                choiceFont.draw(batch, "Sherly:", px + 20, bY4 + bH - 6);
+                choiceFont.setColor(Color.WHITE);
+                choiceFont.draw(batch, "Jangan lupa partitur nya, gue periksa!", px + 20, bY4 + bH - 24);
+
+                // Bubble 5 (Raksha reply - Newest at bottom)
+                if (gameState.ch2ChatRead) {
+                    choiceFont.setColor(new Color(0.5f, 1f, 0.6f, 1f));
+                    choiceFont.draw(batch, "Raksha (kamu):", px + 20, bY5 + bH - 6);
+                    choiceFont.setColor(Color.WHITE);
+                    choiceFont.draw(batch, "Siap semua! Otw studio sekarang!", px + 20, bY5 + bH - 24);
+
+                    choiceFont.getData().setScale(0.65f);
+                    choiceFont.setColor(Color.LIGHT_GRAY);
+                    choiceFont.draw(batch, "[TAB/ESC] Tutup  -  Pergi ke Studio!", px + 14, py + 20);
+                } else {
+                    choiceFont.getData().setScale(0.78f);
+                    choiceFont.setColor(Color.WHITE);
+                    choiceFont.draw(batch, "Balas & Ke Studio!", px + phoneW / 2f - 70f, py + 38);
+                    choiceFont.getData().setScale(0.65f);
+                    choiceFont.setColor(Color.LIGHT_GRAY);
+                    choiceFont.draw(batch, "[ENTER] Balas   [TAB/ESC] Tutup", px + 14, py + 14);
+                }
+            } else {
+                // Generic casual messages for other chapters
+                choiceFont.setColor(Color.LIGHT_GRAY);
+                choiceFont.draw(batch, "Bagas: Gas latihan minggu depan!", px + 20, bY1 + bH - 14);
+                choiceFont.getData().setScale(0.65f);
+                choiceFont.setColor(Color.LIGHT_GRAY);
+                choiceFont.draw(batch, "[TAB/ESC] Tutup", px + 14, py + 14);
             }
         }
-        game.getBatch().end();
+
+        choiceFont.getData().setScale(1.0f);
+        batch.end();
     }
 
     // ==========================================
@@ -682,8 +1069,21 @@ public class GameplayScreen implements Screen, InputProcessor {
 
         // Update interaction zone flags each frame
         nearBed   = (currentZone == ExplorationZone.KOST)   && rakshaX >= 820f && rakshaX <= 1160f;
-        nearClara = (currentZone == ExplorationZone.KAMPUS) && rakshaX >= 780f;
+        nearClara = (currentZone == ExplorationZone.DALAM_STUDIO || currentZone == ExplorationZone.UKM_MUSIK || currentZone == ExplorationZone.KAMPUS) && (currentZone == ExplorationZone.DALAM_STUDIO ? rakshaX >= 150f : rakshaX >= 700f);
         nearKostGate = (currentZone == ExplorationZone.KOST_OUTSIDE) && rakshaX >= 480f && rakshaX <= 750f;
+        
+        nearRania = (currentZone == ExplorationZone.STUDIO_SENI) && Math.abs(rakshaX - raniaX) < 150f;
+        nearSherly = (currentZone == ExplorationZone.KEDAI_KOPI) && Math.abs(rakshaX - sherlyX) < 150f;
+        nearBagas = (currentZone == ExplorationZone.KANTIN) && Math.abs(rakshaX - bagasX) < 150f;
+        nearJalanTanah = (currentZone == ExplorationZone.JALAN_SETAPAK) && rakshaX >= 440f && rakshaX <= 590f;
+        nearStudioDoor = (currentZone == ExplorationZone.LUAR_RUANG_STUDIO) && rakshaX >= 630f && rakshaX <= 800f;
+        nearStudioExit = (currentZone == ExplorationZone.DALAM_STUDIO) && rakshaX >= 60f && rakshaX <= 250f;
+        nearUkmMusikExit = (currentZone == ExplorationZone.UKM_MUSIK) && rakshaX >= 60f && rakshaX <= 250f;
+        nearKantinDoor = (currentZone == ExplorationZone.TAMAN_KAMPUS) && rakshaX >= 500f && rakshaX <= 780f;
+        nearKantinExit = (currentZone == ExplorationZone.KANTIN) && rakshaX >= 500f && rakshaX <= 780f;
+        nearUkmMusikDoor = (currentZone == ExplorationZone.LORONG_1) && rakshaX >= 850f && rakshaX <= 1050f;
+        nearUkmSeniDoor  = (currentZone == ExplorationZone.LORONG_2) && rakshaX >= 850f && rakshaX <= 1050f;
+        nearStudioSeniExit = (currentZone == ExplorationZone.STUDIO_SENI) && rakshaX >= 60f && rakshaX <= 250f;
 
         // Zone-specific edge / movement clamping
         switch (currentZone) {
@@ -694,35 +1094,206 @@ public class GameplayScreen implements Screen, InputProcessor {
                 }
                 break;
             case KOST_OUTSIDE:
+                if (rakshaX < 60f) {
+                    if (gameState.day == 24 && !gameState.day24EventDone) {
+                        rakshaX = 150f;
+                        loadNode("BLOCK_DAY24_RANIA");
+                    } else {
+                        startZoneTransition(ExplorationZone.KEDAI_KOPI, "Menuju Kedai Kopi");
+                    }
+                }
+                if (rakshaX > VIRTUAL_WIDTH - 60f) {
+                    if (gameState.day == 26 && !gameState.day26EventDone) {
+                        rakshaX = VIRTUAL_WIDTH - 150f;
+                        loadNode("BLOCK_DAY26_SHERLY");
+                    } else {
+                        startZoneTransition(ExplorationZone.WARKOP, "Menuju Jalan Raya");
+                    }
+                }
+                break;
+            case KEDAI_KOPI:
+                if (rakshaX < 60f) {
+                    if (gameState.day == 26 && !gameState.day26EventDone) {
+                        rakshaX = 150f;
+                        loadNode("BLOCK_DAY26_SHERLY");
+                    } else {
+                        startZoneTransition(ExplorationZone.JALAN_DANAU, "Menuju Danau");
+                    }
+                }
+                if (rakshaX > VIRTUAL_WIDTH - 60f) {
+                    startZoneTransition(ExplorationZone.KOST_OUTSIDE, "Kembali ke Depan Kost");
+                }
+                break;
+            case JALAN_DANAU:
+                if (rakshaX < 60f) {
+                    startZoneTransition(ExplorationZone.JALAN_SETAPAK, "Menuju Jalan Setapak");
+                }
+                if (rakshaX > VIRTUAL_WIDTH - 60f) {
+                    startZoneTransition(ExplorationZone.KEDAI_KOPI, "Kembali ke Kedai Kopi");
+                }
+                break;
+            case JALAN_SETAPAK:
                 if (rakshaX < 60f) rakshaX = 60f;
                 if (rakshaX > VIRTUAL_WIDTH - 60f) {
-                    startZoneTransition(ExplorationZone.WARKOP, "Menuju Jalan Raya");
+                    startZoneTransition(ExplorationZone.JALAN_DANAU, "Kembali ke Danau");
                 }
+                break;
+            case LUAR_RUANG_STUDIO:
+                if (rakshaX < 60f) {
+                    startZoneTransition(ExplorationZone.JALAN_SETAPAK, "Kembali ke Jalan Setapak");
+                }
+                if (rakshaX > VIRTUAL_WIDTH - 60f) rakshaX = VIRTUAL_WIDTH - 60f;
+                break;
+            case DALAM_STUDIO:
+                if (rakshaX < 60f) {
+                    startZoneTransition(ExplorationZone.LUAR_RUANG_STUDIO, "Keluar ke Luar Studio");
+                }
+                if (rakshaX > VIRTUAL_WIDTH - 60f) rakshaX = VIRTUAL_WIDTH - 60f;
+                break;
+            case UKM_MUSIK:
+                if (rakshaX < 60f) {
+                    startZoneTransition(ExplorationZone.LORONG_1, "Keluar ke Lorong 1");
+                }
+                if (rakshaX > VIRTUAL_WIDTH - 60f) rakshaX = VIRTUAL_WIDTH - 60f;
                 break;
             case WARKOP:
                 if (rakshaX < 60f) {
-                    startZoneTransition(ExplorationZone.KOST_OUTSIDE, "Kembali ke Depan Kost");
+                    if (gameState.day == 24 && !gameState.day24EventDone) {
+                        rakshaX = 150f;
+                        loadNode("BLOCK_DAY24_RANIA");
+                    } else {
+                        startZoneTransition(ExplorationZone.KOST_OUTSIDE, "Kembali ke Depan Kost");
+                    }
                 }
                 if (rakshaX > VIRTUAL_WIDTH - 60f) {
-                    startZoneTransition(ExplorationZone.KAMPUS, "Tiba di Kampus");
+                    startZoneTransition(ExplorationZone.TAMAN_KAMPUS, "Menuju Taman Kampus");
+                }
+                break;
+            case TAMAN_KAMPUS:
+                if (rakshaX < 60f) {
+                    startZoneTransition(ExplorationZone.WARKOP, "Kembali ke Jalan Raya");
+                }
+                if (rakshaX > VIRTUAL_WIDTH - 60f) {
+                    startZoneTransition(ExplorationZone.LORONG_1, "Menuju Lorong 1");
+                }
+                break;
+            case KANTIN:
+                if (rakshaX < 60f) {
+                    startZoneTransition(ExplorationZone.TAMAN_KAMPUS, "Kembali ke Taman Kampus");
+                }
+                if (rakshaX > VIRTUAL_WIDTH - 60f) {
+                    if ("CHAPTER_4".equals(gameState.chapter)) {
+                        // Chapter 4: entering deep kantin triggers the concert sequence
+                        loadNode("CH4_CLARA_PEP");
+                    } else {
+                        startZoneTransition(ExplorationZone.TAMAN_KAMPUS, "Kembali ke Taman Kampus");
+                    }
+                }
+                break;
+            case LORONG_1:
+                if (rakshaX < 60f) {
+                    startZoneTransition(ExplorationZone.TAMAN_KAMPUS, "Kembali ke Taman Kampus");
+                }
+                if (rakshaX > VIRTUAL_WIDTH - 60f) {
+                    startZoneTransition(ExplorationZone.LORONG_2, "Menuju Lorong 2");
+                }
+                break;
+            case LORONG_2:
+                if (rakshaX < 60f) {
+                    startZoneTransition(ExplorationZone.LORONG_1, "Kembali ke Lorong 1");
+                }
+                if (rakshaX > 1000f) {
+                    rakshaX = 1000f; // Pembatas (barrier) arah loker, hak akses hanya sampai pintu UKM Seni
                 }
                 break;
             case KAMPUS:
                 if (rakshaX < 60f) {
-                    startZoneTransition(ExplorationZone.WARKOP, "Kembali ke Jalan Raya");
+                    if (gameState.day == 24 && !gameState.day24EventDone) {
+                        rakshaX = 150f;
+                        loadNode("BLOCK_DAY24_RANIA");
+                    } else {
+                        startZoneTransition(ExplorationZone.LORONG_2, "Kembali ke Lorong 2");
+                    }
+                }
+                if (rakshaX > VIRTUAL_WIDTH - 60f) {
+                    startZoneTransition(ExplorationZone.STUDIO_SENI, "Menuju Studio Seni");
+                }
+                break;
+            case STUDIO_SENI:
+                if (rakshaX < 60f) {
+                    startZoneTransition(ExplorationZone.LORONG_2, "Keluar ke Lorong 2");
                 }
                 if (rakshaX > VIRTUAL_WIDTH - 60f) rakshaX = VIRTUAL_WIDTH - 60f;
                 break;
         }
 
-        // E / W key: trigger interaction for the nearest hotspot (justPressed = single-fire)
-        if (Gdx.input.isKeyJustPressed(Input.Keys.E) || Gdx.input.isKeyJustPressed(Input.Keys.W)) {
+        // Key E ONLY: NPC Conversations & Bed Interactions
+        if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
             if (nearBed) {
-                loadNode("CH1_KOST_CHOICES");
+                String blockNode = getPendingMandatoryBlockNode();
+                if (blockNode != null) {
+                    loadNode(blockNode);
+                } else {
+                    loadNode("CH1_KOST_CHOICES");
+                }
             } else if (nearClara) {
-                loadNode("CH1_KAMPUS_CHOICES");
-            } else if (nearKostGate && Gdx.input.isKeyJustPressed(Input.Keys.W)) {
-                startZoneTransition(ExplorationZone.KOST, "Masuk ke Kamar Kost");
+                String blockNode = getPendingMandatoryBlockNode();
+                if (blockNode != null && !blockNode.equals("BLOCK_CH2_QUEST")) {
+                    loadNode(blockNode);
+                } else if (isPracticeDay(gameState.day) && currentZone == ExplorationZone.DALAM_STUDIO) {
+                    loadNode("BAND_PRACTICE_START");
+                } else {
+                    loadNode("CH1_KAMPUS_CHOICES");
+                }
+            } else if (nearSherly) {
+                if (gameState.day26EventDone) {
+                    loadNode("SHERLY_CASUAL_1");
+                } else {
+                    loadNode("CH1_SHERLY_EVENT");
+                }
+            } else if (nearRania) {
+                if (gameState.day24EventDone) {
+                    loadNode("RANIA_CASUAL_1");
+                } else {
+                    loadNode("CH1_RANIA_EVENT");
+                }
+            } else if (nearBagas) {
+                if (gameState.day28EventDone) {
+                    loadNode("BAGAS_CASUAL_1");
+                } else {
+                    loadNode("CH1_BAGAS_EVENT");
+                }
+            }
+        }
+
+        // Key W ONLY: Room / Door Transitions
+        if (Gdx.input.isKeyJustPressed(Input.Keys.W)) {
+            if (nearKantinDoor) {
+                startZoneTransition(ExplorationZone.KANTIN, "Masuk ke Kantin");
+            } else if (nearKantinExit) {
+                startZoneTransition(ExplorationZone.TAMAN_KAMPUS, "Keluar Kantin");
+            } else if (nearUkmMusikDoor) {
+                startZoneTransition(ExplorationZone.UKM_MUSIK, "Masuk ke Ruang UKM Musik");
+            } else if (nearUkmMusikExit) {
+                startZoneTransition(ExplorationZone.LORONG_1, "Keluar ke Lorong 1");
+            } else if (nearUkmSeniDoor) {
+                startZoneTransition(ExplorationZone.STUDIO_SENI, "Masuk ke Studio Seni");
+            } else if (nearStudioSeniExit) {
+                startZoneTransition(ExplorationZone.LORONG_2, "Keluar ke Lorong 2");
+            } else if (nearKostGate) {
+                if (gameState.day == 26 && !gameState.day26EventDone) {
+                    loadNode("BLOCK_DAY26_SHERLY");
+                } else if (gameState.day == 24 && !gameState.day24EventDone) {
+                    loadNode("BLOCK_DAY24_RANIA");
+                } else {
+                    startZoneTransition(ExplorationZone.KOST, "Masuk ke Kamar Kost");
+                }
+            } else if (nearJalanTanah) {
+                startZoneTransition(ExplorationZone.LUAR_RUANG_STUDIO, "Menuju Luar Studio");
+            } else if (nearStudioDoor) {
+                startZoneTransition(ExplorationZone.DALAM_STUDIO, "Masuk ke Dalam Studio");
+            } else if (nearStudioExit) {
+                startZoneTransition(ExplorationZone.LUAR_RUANG_STUDIO, "Keluar ke Luar Studio");
             }
         }
     }
@@ -736,15 +1307,108 @@ public class GameplayScreen implements Screen, InputProcessor {
             zoneTransAlpha = Math.min(1f, zoneTransAlpha + fadeSpeed * delta);
             if (zoneTransAlpha >= 1f) {
                 // Fully black — switch zone and spawn Raksha at correct side
+                ExplorationZone oldZone = currentZone;
                 currentZone = pendingZone;
+                
+                // Sync currentBackground to matched zone
+                currentBackground = getZoneTexture(currentZone);
+                
                 if (pendingZone == ExplorationZone.KOST) {
-                    rakshaX = VIRTUAL_WIDTH - 150f; // entering from right, spawn at right side
+                    rakshaX = VIRTUAL_WIDTH - 150f;
                     rakshaFacingRight = false;
-                } else if (pendingZone == ExplorationZone.KOST_OUTSIDE && currentZone == ExplorationZone.KOST) {
-                    rakshaX = 615f; // entering from kost door, spawn at gate
+                } else if (pendingZone == ExplorationZone.KOST_OUTSIDE && oldZone == ExplorationZone.KOST) {
+                    rakshaX = VIRTUAL_WIDTH / 2f;
                     rakshaFacingRight = true;
+                } else if (pendingZone == ExplorationZone.KEDAI_KOPI && oldZone == ExplorationZone.KOST_OUTSIDE) {
+                    rakshaX = VIRTUAL_WIDTH - 150f;
+                    rakshaFacingRight = false;
+                } else if (pendingZone == ExplorationZone.KOST_OUTSIDE && oldZone == ExplorationZone.KEDAI_KOPI) {
+                    rakshaX = 150f;
+                    rakshaFacingRight = true;
+                } else if (pendingZone == ExplorationZone.STUDIO_SENI && oldZone == ExplorationZone.KAMPUS) {
+                    rakshaX = 150f;
+                    rakshaFacingRight = true;
+                } else if (pendingZone == ExplorationZone.KAMPUS && oldZone == ExplorationZone.STUDIO_SENI) {
+                    rakshaX = VIRTUAL_WIDTH - 150f;
+                    rakshaFacingRight = false;
+                } else if (pendingZone == ExplorationZone.WARKOP && oldZone == ExplorationZone.TAMAN_KAMPUS) {
+                    rakshaX = VIRTUAL_WIDTH - 150f;
+                    rakshaFacingRight = false;
+                } else if (pendingZone == ExplorationZone.TAMAN_KAMPUS && oldZone == ExplorationZone.WARKOP) {
+                    rakshaX = 150f;
+                    rakshaFacingRight = true;
+                } else if (pendingZone == ExplorationZone.KANTIN && oldZone == ExplorationZone.TAMAN_KAMPUS) {
+                    rakshaX = VIRTUAL_WIDTH / 2f;
+                    rakshaFacingRight = true;
+                } else if (pendingZone == ExplorationZone.TAMAN_KAMPUS && oldZone == ExplorationZone.KANTIN) {
+                    rakshaX = 640f;
+                    rakshaFacingRight = true;
+                } else if (pendingZone == ExplorationZone.LORONG_1 && oldZone == ExplorationZone.TAMAN_KAMPUS) {
+                    rakshaX = 150f;
+                    rakshaFacingRight = true;
+                } else if (pendingZone == ExplorationZone.TAMAN_KAMPUS && oldZone == ExplorationZone.LORONG_1) {
+                    rakshaX = VIRTUAL_WIDTH - 150f;
+                    rakshaFacingRight = false;
+                } else if (pendingZone == ExplorationZone.LORONG_2 && oldZone == ExplorationZone.LORONG_1) {
+                    rakshaX = 150f;
+                    rakshaFacingRight = true;
+                } else if (pendingZone == ExplorationZone.LORONG_1 && oldZone == ExplorationZone.LORONG_2) {
+                    rakshaX = VIRTUAL_WIDTH - 150f;
+                    rakshaFacingRight = false;
+                } else if (pendingZone == ExplorationZone.KAMPUS && oldZone == ExplorationZone.LORONG_2) {
+                    rakshaX = 150f;
+                    rakshaFacingRight = true;
+                } else if (pendingZone == ExplorationZone.LORONG_2 && oldZone == ExplorationZone.KAMPUS) {
+                    rakshaX = VIRTUAL_WIDTH - 150f;
+                    rakshaFacingRight = false;
+                } else if (pendingZone == ExplorationZone.KOST_OUTSIDE && oldZone == ExplorationZone.WARKOP) {
+                    rakshaX = VIRTUAL_WIDTH - 150f;
+                    rakshaFacingRight = false;
+                } else if (pendingZone == ExplorationZone.JALAN_DANAU && oldZone == ExplorationZone.KEDAI_KOPI) {
+                    rakshaX = VIRTUAL_WIDTH - 150f;
+                    rakshaFacingRight = false;
+                } else if (pendingZone == ExplorationZone.JALAN_DANAU && oldZone == ExplorationZone.JALAN_SETAPAK) {
+                    rakshaX = 150f;
+                    rakshaFacingRight = true;
+                } else if (pendingZone == ExplorationZone.KEDAI_KOPI && oldZone == ExplorationZone.JALAN_DANAU) {
+                    rakshaX = 150f;
+                    rakshaFacingRight = true;
+                } else if (pendingZone == ExplorationZone.JALAN_SETAPAK && oldZone == ExplorationZone.JALAN_DANAU) {
+                    rakshaX = VIRTUAL_WIDTH - 150f;
+                    rakshaFacingRight = false;
+                } else if (pendingZone == ExplorationZone.JALAN_SETAPAK && oldZone == ExplorationZone.LUAR_RUANG_STUDIO) {
+                    rakshaX = 520f;
+                    rakshaFacingRight = true;
+                } else if (pendingZone == ExplorationZone.LUAR_RUANG_STUDIO && oldZone == ExplorationZone.JALAN_SETAPAK) {
+                    rakshaX = 150f;
+                    rakshaFacingRight = true;
+                } else if (pendingZone == ExplorationZone.LUAR_RUANG_STUDIO && oldZone == ExplorationZone.DALAM_STUDIO) {
+                    rakshaX = 715f;
+                    rakshaFacingRight = true;
+                } else if (pendingZone == ExplorationZone.DALAM_STUDIO && oldZone == ExplorationZone.LUAR_RUANG_STUDIO) {
+                    rakshaX = 150f;
+                    rakshaFacingRight = true;
+                    if (("CHAPTER_2".equals(gameState.chapter) || (gameState.day <= 20 && gameState.day >= 10)) && !gameState.ch2CompositionDone) {
+                        if (!gameState.ch2ChatRead) {
+                            // Block entry — must read the group chat first
+                            loadNode("BLOCK_CH2_QUEST");
+                            rakshaX = 200f;
+                        } else {
+                            // Chat read, all members here — trigger composition
+                            loadNode("CH2_COMPOSITION");
+                        }
+                    }
+                } else if (pendingZone == ExplorationZone.LORONG_1 && oldZone == ExplorationZone.UKM_MUSIK) {
+                    rakshaX = 950f;
+                    rakshaFacingRight = false;
+                } else if (pendingZone == ExplorationZone.UKM_MUSIK && oldZone == ExplorationZone.LORONG_1) {
+                    rakshaX = 150f;
+                    rakshaFacingRight = true;
+                    if ("CHAPTER_3".equals(gameState.chapter) && !gameState.ch3AldoDone) {
+                        loadNode("CH3_ALDO_1");
+                    }
                 } else {
-                    rakshaX = 150f; // entering from left, spawn at left side
+                    rakshaX = 150f; 
                     rakshaFacingRight = true;
                 }
                 zoneTransFadingOut = false;
@@ -770,10 +1434,21 @@ public class GameplayScreen implements Screen, InputProcessor {
         // 1. Draw full-screen background matching current zone
         Texture zoneBg;
         switch (currentZone) {
-            case KOST:   zoneBg = kamarKostTexture; break;
-            case KOST_OUTSIDE: zoneBg = kostOutsideTexture; break;
-            case WARKOP: zoneBg = jalanRayaTexture;    break;
-            default:     zoneBg = studioTexture;    break; // KAMPUS
+            case KOST:          zoneBg = kamarKostTexture; break;
+            case KOST_OUTSIDE:  zoneBg = kostOutsideTexture; break;
+            case WARKOP:        zoneBg = jalanRayaTexture; break;
+            case TAMAN_KAMPUS:  zoneBg = tamanKampusTexture; break;
+            case KANTIN:        zoneBg = kantinTexture; break;
+            case LORONG_1:      zoneBg = lorong1Texture; break;
+            case LORONG_2:      zoneBg = lorong2Texture; break;
+            case KEDAI_KOPI:    zoneBg = kedaiKopiTexture; break;
+            case STUDIO_SENI:   zoneBg = ukmSeniTexture; break;
+            case JALAN_SETAPAK: zoneBg = jalanSetapakTexture; break;
+            case JALAN_DANAU:   zoneBg = jalanDanauTexture; break;
+            case LUAR_RUANG_STUDIO: zoneBg = luarRuangStudioTexture; break;
+            case DALAM_STUDIO:  zoneBg = dalamStudioTexture; break;
+            case UKM_MUSIK:     zoneBg = studioTexture; break;
+            default:            zoneBg = studioTexture; break; // KAMPUS
         }
         if (zoneBg != null) {
             batch.setColor(Color.WHITE);
@@ -795,12 +1470,11 @@ public class GameplayScreen implements Screen, InputProcessor {
                 claraDrawY = -320f;
                 break;
             case KOST_OUTSIDE:
-                idleDrawY  = -300f;
-                walkDrawY  = -430f;
-                claraDrawY = -300f;
-                break;
             case WARKOP:
-                // Raised sidewalk
+            case TAMAN_KAMPUS:
+            case KANTIN:
+            case LORONG_1:
+            case LORONG_2:
                 idleDrawY  = -300f;
                 walkDrawY  = -430f;
                 claraDrawY = -300f;
@@ -813,11 +1487,63 @@ public class GameplayScreen implements Screen, InputProcessor {
                 break;
         }
 
-        // 2. Draw Clara — only visible in the KAMPUS zone, at center-right
-        if (currentZone == ExplorationZone.KAMPUS) {
-            float claraDrawX = 950f - claraSpriteSize / 2f;
+        // 2. Draw NPCs
+        boolean practiceDay = isPracticeDay(gameState.day);
+
+        // Draw Clara — visible in UKM Musik (DALAM_STUDIO & UKM_MUSIK) & KAMPUS zone
+        if (currentZone == ExplorationZone.DALAM_STUDIO || currentZone == ExplorationZone.UKM_MUSIK || currentZone == ExplorationZone.KAMPUS) {
+            float claraDrawX = (practiceDay && currentZone == ExplorationZone.DALAM_STUDIO) ? 880f - claraSpriteSize / 2f : 950f - claraSpriteSize / 2f;
             TextureRegion claraFrame = claraIdleAnimation.getKeyFrame(claraAnimationTime, true);
             batch.draw(claraFrame, claraDrawX, claraDrawY, claraSpriteSize, claraSpriteSize);
+        }
+
+        // Calculate feet Y based on Raksha's bounding box in 2048x2048 image
+        float npcScale = 1150f / 2048f;
+        float feetY = claraDrawY + (789f * npcScale); // approx 143f
+
+        // Draw Rania: Studio Seni on Day 24, OR in DALAM_STUDIO on practice days (days 20, 18, 15, 12)
+        if (raniaIdleAnimation != null) {
+            if (currentZone == ExplorationZone.DALAM_STUDIO && practiceDay) {
+                TextureRegion raniaFrame = raniaIdleAnimation.getKeyFrame(claraAnimationTime, true);
+                float drawW = raniaFrame.getRegionWidth() * npcScale;
+                float drawH = raniaFrame.getRegionHeight() * npcScale;
+                batch.draw(raniaFrame, 480f - drawW / 2f, feetY, drawW, drawH);
+            } else if (currentZone == ExplorationZone.STUDIO_SENI) {
+                TextureRegion raniaFrame = raniaIdleAnimation.getKeyFrame(claraAnimationTime, true);
+                float drawW = raniaFrame.getRegionWidth() * npcScale;
+                float drawH = raniaFrame.getRegionHeight() * npcScale;
+                batch.draw(raniaFrame, raniaX - drawW / 2f, feetY, drawW, drawH);
+            }
+        }
+
+        // Draw Sherly: Kedai Kopi OR in DALAM_STUDIO on practice days
+        if (sherlyIdleAnimation != null) {
+            if (currentZone == ExplorationZone.DALAM_STUDIO && practiceDay) {
+                TextureRegion sherlyFrame = sherlyIdleAnimation.getKeyFrame(claraAnimationTime, true);
+                float drawW = sherlyFrame.getRegionWidth() * npcScale;
+                float drawH = sherlyFrame.getRegionHeight() * npcScale;
+                batch.draw(sherlyFrame, 280f - drawW / 2f, feetY, drawW, drawH);
+            } else if (currentZone == ExplorationZone.KEDAI_KOPI) {
+                TextureRegion sherlyFrame = sherlyIdleAnimation.getKeyFrame(claraAnimationTime, true);
+                float drawW = sherlyFrame.getRegionWidth() * npcScale;
+                float drawH = sherlyFrame.getRegionHeight() * npcScale;
+                batch.draw(sherlyFrame, sherlyX - drawW / 2f, feetY, drawW, drawH);
+            }
+        }
+
+        // Draw Bagas: Kantin OR in DALAM_STUDIO on practice days
+        if (bagasIdleAnimation != null) {
+            if (currentZone == ExplorationZone.DALAM_STUDIO && practiceDay) {
+                TextureRegion bagasFrame = bagasIdleAnimation.getKeyFrame(claraAnimationTime, true);
+                float drawW = bagasFrame.getRegionWidth() * npcScale;
+                float drawH = bagasFrame.getRegionHeight() * npcScale;
+                batch.draw(bagasFrame, 680f - drawW / 2f, feetY, drawW, drawH);
+            } else if (currentZone == ExplorationZone.KANTIN) {
+                TextureRegion bagasFrame = bagasIdleAnimation.getKeyFrame(claraAnimationTime, true);
+                float drawW = bagasFrame.getRegionWidth() * npcScale;
+                float drawH = bagasFrame.getRegionHeight() * npcScale;
+                batch.draw(bagasFrame, bagasX - drawW / 2f, feetY, drawW, drawH);
+            }
         }
 
         // 3. Draw Raksha (walk vs idle animation)
@@ -846,23 +1572,82 @@ public class GameplayScreen implements Screen, InputProcessor {
             batch.draw(rakshaFrame, rakshaDrawX + rakshaSpriteSize, rakshaDrawY, -rakshaSpriteSize, rakshaSpriteSize);
         }
 
-        // 4. Zone hint text
-        font.setColor(Color.GOLD);
-        String hint;
+        // 4. Draw Quest UI
+        String questText = getCurrentQuest();
+        GlyphLayout questLayout = new GlyphLayout(font, questText);
+        float textW = questLayout.width + 40f;
+        float textH = font.getLineHeight() + 20f;
+        
+        // Draw semi-transparent background for Quest
+        batch.end();
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
+        shapeRenderer.setProjectionMatrix(camera.combined);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(0, 0, 0, 0.6f);
+        shapeRenderer.rect(20, VIRTUAL_HEIGHT - textH - 20, textW, textH);
+        
+        // Draw Location Hint tag above it
+        String locationHint = "";
         switch (currentZone) {
-            case KOST:   hint = "[Kamar Kost]  Jalan ke kanan menuju pintu keluar"; break;
-            case KOST_OUTSIDE: hint = "[Luar Kost]  Berdiri di gerbang dan tekan [W] untuk masuk kost"; break;
-            case WARKOP: hint = "[Jalan Raya]  Terus ke kanan menuju kampus, kiri kembali ke luar kost"; break;
-            default:     hint = "[Kampus]  Dekati Clara untuk memilih kegiatan hari ini!"; break;
+            case KOST:   locationHint = "Lokasi: Kamar Kost"; break;
+            case KOST_OUTSIDE: locationHint = "Lokasi: Halaman Kost (Kiri ke Kedai Kopi, Kanan ke Jalan Raya)"; break;
+            case WARKOP: locationHint = "Lokasi: Jalan Raya (Kiri ke Halaman Kost, Kanan ke Taman Kampus)"; break;
+            case TAMAN_KAMPUS: locationHint = "Lokasi: Taman Kampus (Kiri ke Jalan Raya, Tengah ke Kantin, Kanan ke Lorong 1)"; break;
+            case KANTIN: locationHint = "Lokasi: Kantin Kampus (Tengah / Kiri / Kanan ke Taman Kampus)"; break;
+            case LORONG_1: locationHint = "Lokasi: Lorong 1 (Kiri ke Taman Kampus, W: Masuk UKM Musik, Kanan ke Lorong 2)"; break;
+            case LORONG_2: locationHint = "Lokasi: Lorong 2 (Kiri ke Lorong 1, W: Masuk Studio Seni, Kanan ke Kampus)"; break;
+            case KEDAI_KOPI: locationHint = "Lokasi: Kedai Kopi (Kiri ke Jalan Danau, Kanan ke Halaman Kost)"; break;
+            case KAMPUS: locationHint = "Lokasi: Kampus Utama (Kiri ke Lorong 2, Kanan ke Studio Seni)"; break;
+            case STUDIO_SENI: locationHint = "Lokasi: Studio Seni (Kiri ke Kampus)"; break;
+            case JALAN_SETAPAK: locationHint = "Lokasi: Jalan Setapak (Kanan ke Danau)"; break;
+            case JALAN_DANAU: locationHint = "Lokasi: Jalan Danau (Kiri ke Jalan Setapak, Kanan ke Kedai Kopi)"; break;
+            case LUAR_RUANG_STUDIO: locationHint = "Lokasi: Luar Studio Musik (Kiri ke Jalan Setapak)"; break;
+            case DALAM_STUDIO: locationHint = "Lokasi: Dalam Studio Musik"; break;
+            case UKM_MUSIK: locationHint = "Lokasi: Ruang UKM Musik"; break;
+            default: locationHint = "Lokasi: Unknown"; break;
         }
-        font.draw(batch, hint, 50, VIRTUAL_HEIGHT - 30);
+        GlyphLayout locLayout = new GlyphLayout(font, locationHint);
+        float locW = locLayout.width + 30f;
+        float locH = font.getLineHeight() + 10f;
+        shapeRenderer.setColor(0.2f, 0.2f, 0.5f, 0.8f);
+        shapeRenderer.rect(20, VIRTUAL_HEIGHT - 20, locW, locH);
+        shapeRenderer.end();
+        Gdx.gl.glDisable(GL20.GL_BLEND);
+        batch.begin();
+
+        font.setColor(Color.WHITE);
+        font.draw(batch, locationHint, 35, VIRTUAL_HEIGHT - 20 + locH/2 + font.getLineHeight()/4);
+        
+        font.setColor(Color.GOLD);
+        font.draw(batch, questText, 40, VIRTUAL_HEIGHT - textH/2 - 20 + font.getLineHeight()/4);
 
         // Interaction prompts — show when near a hotspot
-        if (nearBed || nearClara || nearKostGate) {
+
+        if (nearBed || nearClara || nearKostGate || nearRania || nearSherly || nearBagas || nearJalanTanah || nearStudioDoor || nearStudioExit || nearUkmMusikExit || nearKantinDoor || nearKantinExit || nearUkmMusikDoor || nearUkmSeniDoor || nearStudioSeniExit) {
             String promptText = "";
             if (nearBed) promptText = "[ E ]  Tempat Tidur  —  Latihan Gitar / Tidur";
-            else if (nearClara) promptText = "[ E ]  Bicara dengan Clara  —  Pilih kegiatan";
+            else if (nearClara) {
+                if (isPracticeDay(gameState.day) && currentZone == ExplorationZone.DALAM_STUDIO) {
+                    promptText = "[ E ]  Latihan Band (Tatap Esok)";
+                } else {
+                    promptText = "[ E ]  Bicara dengan Clara";
+                }
+            }
+            else if (nearRania) promptText = "[ E ]  Bicara dengan Rania";
+            else if (nearSherly) promptText = "[ E ]  Bicara dengan Sherly";
+            else if (nearBagas) promptText = "[ E ]  Bicara dengan Bagas";
+            else if (nearKantinDoor) promptText = "[ W ]  Masuk ke Kantin Kampus";
+            else if (nearKantinExit) promptText = "[ W ]  Keluar ke Taman Kampus";
+            else if (nearUkmMusikDoor) promptText = "[ W ]  Masuk ke UKM Musik";
+            else if (nearUkmMusikExit) promptText = "[ W ]  Keluar ke Lorong 1";
+            else if (nearUkmSeniDoor) promptText = "[ W ]  Masuk ke Studio Seni";
+            else if (nearStudioSeniExit) promptText = "[ W ]  Keluar ke Lorong 2";
             else if (nearKostGate) promptText = "[ W ]  Masuk ke Kamar Kost";
+            else if (nearJalanTanah) promptText = "[ W ]  Telusuri Jalan Setapak";
+            else if (nearStudioDoor) promptText = "[ W ]  Masuk ke Studio Musik";
+            else if (nearStudioExit) promptText = "[ W ]  Keluar ke Luar Studio";
+
             
             float promptW = 460f;
             float promptX = (VIRTUAL_WIDTH - promptW) / 2f;
@@ -939,6 +1724,11 @@ public class GameplayScreen implements Screen, InputProcessor {
     }
 
     private void renderDialogue(float delta) {
+        if (currentNode != null && (currentNode.nodeId.startsWith("CREDITS_") || currentNode.nodeId.equals("GAME_OVER"))) {
+            renderMovieCredits(delta);
+            return;
+        }
+
         SpriteBatch batch = game.getBatch();
         
         // 1. Draw Background
@@ -1082,55 +1872,55 @@ public class GameplayScreen implements Screen, InputProcessor {
 
         String speaker = currentSpeakerName;
 
-        float rakshaAlpha = 0.5f;
-        float rightAlpha = 0.5f;
+        float rakshaDim = 0.6f;
+        float rightDim = 0.6f;
 
         if (speaker != null) {
             if (speaker.equalsIgnoreCase("Raksha")) {
-                rakshaAlpha = 1.0f;
-                rightAlpha = 0.4f;
-            } else if (speaker.equalsIgnoreCase("Clara") || speaker.equalsIgnoreCase("Sherly")) {
-                rightAlpha = 1.0f;
-                rakshaAlpha = 0.4f;
+                rakshaDim = 1.0f;
+                rightDim = 0.6f;
+            } else if (speaker.equalsIgnoreCase("Clara") || speaker.equalsIgnoreCase("Sherly") || speaker.equalsIgnoreCase("Rania") || speaker.equalsIgnoreCase("Bagas")) {
+                rightDim = 1.0f;
+                rakshaDim = 0.6f;
             } else if (speaker.isEmpty()) {
-                rakshaAlpha = 0.6f;
-                rightAlpha = 0.6f;
+                rakshaDim = 0.8f;
+                rightDim = 0.8f;
             } else {
-                rakshaAlpha = 0.5f;
-                rightAlpha = 0.5f;
+                rakshaDim = 0.6f;
+                rightDim = 0.6f;
             }
         }
 
         // Draw Raksha (Left)
-        Texture rakshaTex = null;
-        if (expressionTextures != null && expressionTextures.containsKey("raksha")) {
-            rakshaTex = expressionTextures.get("raksha").get(rakshaExpression);
-        }
-        drawCharacter(batch, rakshaTex, idleAnimation.getKeyFrame(animationTime, true), leftX, yPos, targetHeight, rakshaAlpha);
+        Texture rakshaTex = getCharacterExpressionTexture("raksha", rakshaExpression);
+        drawCharacter(batch, rakshaTex, idleAnimation.getKeyFrame(animationTime, true), leftX, yPos, targetHeight, rakshaDim);
 
-        // Draw Right Character (Clara or Sherly)
+        // Draw Right Character (Clara or Sherly or Rania)
         if ("None".equals(activeRightCharacter)) {
             // Do not draw right character
         } else if ("Sherly".equals(activeRightCharacter)) {
-            Texture sherlyTex = null;
-            if (expressionTextures != null && expressionTextures.containsKey("sherly")) {
-                sherlyTex = expressionTextures.get("sherly").get(sherlyExpression);
-            }
-            drawCharacter(batch, sherlyTex, null, rightX, yPos, targetHeight, rightAlpha);
+            Texture sherlyTex = getCharacterExpressionTexture("sherly", sherlyExpression);
+            TextureRegion fallback = sherlyIdleAnimation != null ? sherlyIdleAnimation.getKeyFrame(claraAnimationTime, true) : null;
+            drawCharacter(batch, sherlyTex, fallback, rightX, yPos, targetHeight, rightDim);
+        } else if ("Rania".equals(activeRightCharacter)) {
+            Texture raniaTex = getCharacterExpressionTexture("rania", raniaExpression);
+            TextureRegion fallback = raniaIdleAnimation != null ? raniaIdleAnimation.getKeyFrame(claraAnimationTime, true) : null;
+            drawCharacter(batch, raniaTex, fallback, rightX, yPos, targetHeight, rightDim);
+        } else if ("Bagas".equals(activeRightCharacter)) {
+            Texture bagasTex = getCharacterExpressionTexture("bagas", bagasExpression);
+            TextureRegion fallback = bagasIdleAnimation != null ? bagasIdleAnimation.getKeyFrame(claraAnimationTime, true) : null;
+            drawCharacter(batch, bagasTex, fallback, rightX, yPos, targetHeight, rightDim);
         } else {
             // Clara
-            Texture claraTex = null;
-            if (expressionTextures != null && expressionTextures.containsKey("clara")) {
-                claraTex = expressionTextures.get("clara").get(claraExpression);
-            }
-            drawCharacter(batch, claraTex, claraIdleAnimation.getKeyFrame(claraAnimationTime, true), rightX, yPos, targetHeight, rightAlpha);
+            Texture claraTex = getCharacterExpressionTexture("clara", claraExpression);
+            drawCharacter(batch, claraTex, claraIdleAnimation.getKeyFrame(claraAnimationTime, true), rightX, yPos, targetHeight, rightDim);
         }
 
         batch.setColor(Color.WHITE);
     }
 
-    private void drawCharacter(SpriteBatch batch, Texture tex, TextureRegion fallbackFrame, float centerX, float yPos, float targetHeight, float alpha) {
-        batch.setColor(1f, 1f, 1f, alpha);
+    private void drawCharacter(SpriteBatch batch, Texture tex, TextureRegion fallbackFrame, float centerX, float yPos, float targetHeight, float dim) {
+        batch.setColor(dim, dim, dim, 1f);
         if (tex != null) {
             float aspect = (float) tex.getWidth() / (float) tex.getHeight();
             float drawH = targetHeight;
@@ -1138,11 +1928,20 @@ public class GameplayScreen implements Screen, InputProcessor {
             float drawX = centerX - drawW / 2f;
             batch.draw(tex, drawX, yPos, drawW, drawH);
         } else if (fallbackFrame != null) {
-            // Use original large sprite rendering unchanged
-            float originalSize = 2000f;
-            float originalY = -850f;
-            float drawX = centerX - originalSize / 2f;
-            batch.draw(fallbackFrame, drawX, originalY, originalSize, originalSize);
+            if (fallbackFrame.getRegionWidth() < 1000) {
+                // Not a full-canvas 2048x2048 sprite, draw it dynamically
+                float aspect = (float) fallbackFrame.getRegionWidth() / (float) fallbackFrame.getRegionHeight();
+                float drawH = targetHeight;
+                float drawW = drawH * aspect;
+                float drawX = centerX - drawW / 2f;
+                batch.draw(fallbackFrame, drawX, yPos, drawW, drawH);
+            } else {
+                // Use original large sprite rendering unchanged
+                float originalSize = 2000f;
+                float originalY = -850f;
+                float drawX = centerX - originalSize / 2f;
+                batch.draw(fallbackFrame, drawX, originalY, originalSize, originalSize);
+            }
         }
     }
 
@@ -1231,14 +2030,44 @@ public class GameplayScreen implements Screen, InputProcessor {
             if (currentNode.choices != null) return; // Prevent advancing when showing choices
 
             String nextId = currentNode.nextId;
-            if (nextId == null || nextId.isEmpty() || nextId.equals("GAME_OVER")) {
+
+            // If action already redirected dialogueNodeId (e.g. CHECK_RECRUITMENT_ACTION),
+            // follow that redirect instead of nextId
+            String redirectedId = gameState.dialogueNodeId;
+            if ((nextId == null || nextId.isEmpty())
+                    && redirectedId != null
+                    && !redirectedId.equals(currentNode.nodeId)) {
+                loadNode(redirectedId);
+                return;
+            }
+
+            if (nextId == null || nextId.isEmpty()) {
+                currentNode = null;
+                isDialogueFinished = false;
+                state = GameplayState.EXPLORATION_STATE;
+            } else if (nextId.equals("GAME_OVER")) {
                 game.setScreen(new MainMenuScreen(game));
+            } else if (nextId.equals("EXPLORATION_MODE")) {
+                currentNode = null;
+                isDialogueFinished = false;
+                state = GameplayState.EXPLORATION_STATE;
+                return;
             } else if (nextId.equals("START_GUITAR_RHYTHM_GAME")) {
                 rhythmFromGuitarPractice = true;
+                rhythmFromBandPractice = false;
                 state = GameplayState.RHYTHM_STATE;
                 nearBed   = false;
                 nearClara = false;
                 rhythmMusic = Gdx.audio.newMusic(Gdx.files.internal("music/cover seandainya.mp3"));
+                rhythmMusic.setVolume(SettingsManager.getVolume());
+                rhythmGame.start(rhythmMusic);
+            } else if (nextId.equals("START_BAND_RHYTHM_GAME") || nextId.equals("START_CONCERT_RHYTHM_GAME")) {
+                rhythmFromBandPractice = true;
+                rhythmFromGuitarPractice = false;
+                state = GameplayState.RHYTHM_STATE;
+                nearBed   = false;
+                nearClara = false;
+                rhythmMusic = Gdx.audio.newMusic(Gdx.files.internal("music/Tatap_Esok.mp3"));
                 rhythmMusic.setVolume(SettingsManager.getVolume());
                 rhythmGame.start(rhythmMusic);
             } else {
@@ -1253,22 +2082,43 @@ public class GameplayScreen implements Screen, InputProcessor {
     private void updateRhythm(float delta) {
         rhythmGame.update(delta);
         if (!rhythmGame.isActive()) {
-            gameState.performanceScore = rhythmGame.score;
             if (rhythmMusic != null) {
                 rhythmMusic.dispose();
                 rhythmMusic = null;
             }
-            if (rhythmFromGuitarPractice) {
-                // Guitar practice in kost: award stats based on performance then end day
+            if (rhythmGame.wasFailed()) {
                 rhythmFromGuitarPractice = false;
-                // Bonus stat scaling with score (base: creativity+3, confidence+2)
-                int bonusCreativity = 3 + (rhythmGame.perfects >= 10 ? 2 : 0);
-                int bonusConfidence = 2 + (rhythmGame.perfects >= 15 ? 1 : 0);
-                gameState.creativity  += bonusCreativity;
-                gameState.confidence  += bonusConfidence;
-                loadNode("CH1_PRACTICE_END");
+                rhythmFromBandPractice = false;
+                state = GameplayState.EXPLORATION_STATE;
             } else {
-                loadNode("CH4_STRING_SNAP");
+                gameState.performanceScore = rhythmGame.score;
+                if (rhythmFromGuitarPractice) {
+                    // Guitar practice in kost: award stats based on performance then end day
+                    rhythmFromGuitarPractice = false;
+                    int bonusCreativity = 3 + (rhythmGame.perfects >= 10 ? 2 : 0);
+                    int bonusConfidence = 2 + (rhythmGame.perfects >= 15 ? 1 : 0);
+                    gameState.creativity  += bonusCreativity;
+                    gameState.confidence  += bonusConfidence;
+                    loadNode("CH1_PRACTICE_END");
+                } else if (rhythmFromBandPractice) {
+                    rhythmFromBandPractice = false;
+                    int bonusStat = 3 + (rhythmGame.perfects >= 10 ? 2 : 0);
+                    gameState.creativity += bonusStat;
+                    gameState.confidence += bonusStat;
+                    gameState.claraRel  += 2;
+                    gameState.bagasRel  += 2;
+                    gameState.raniaRel  += 2;
+                    gameState.sherlyRel += 2;
+                    if ("CHAPTER_4".equals(gameState.chapter) || (currentNode != null && currentNode.nodeId.startsWith("CH4_"))) {
+                        loadNode("CH4_STRING_SNAP");
+                    } else if ("CHAPTER_2".equals(gameState.chapter) || (currentNode != null && currentNode.nodeId.startsWith("CH2_"))) {
+                        loadNode("CH2_END");
+                    } else {
+                        loadNode("BAND_PRACTICE_END");
+                    }
+                } else {
+                    loadNode("CH4_STRING_SNAP");
+                }
             }
         }
     }
@@ -1335,25 +2185,61 @@ public class GameplayScreen implements Screen, InputProcessor {
     // ==========================================
     @Override
     public boolean keyDown(int keycode) {
+        // 1. Phone Overlay State Key Handling (TAB, ESCAPE, ENTER)
+        if (state == GameplayState.PHONE_STATE) {
+            if (keycode == Input.Keys.TAB || keycode == Input.Keys.ESCAPE) {
+                state = (previousState != null && previousState != GameplayState.PHONE_STATE) ? previousState : GameplayState.EXPLORATION_STATE;
+                phoneScreen = 0;
+                return true;
+            }
+            if (keycode == Input.Keys.ENTER) {
+                if (phoneScreen == 0) {
+                    phoneScreen = 1;
+                } else if (phoneScreen == 1) {
+                    if (("CHAPTER_2".equals(gameState.chapter) || (gameState.day <= 20 && gameState.day >= 10)) && !gameState.ch2ChatRead) {
+                        gameState.ch2ChatRead = true;
+                    } else {
+                        state = (previousState != null && previousState != GameplayState.PHONE_STATE) ? previousState : GameplayState.EXPLORATION_STATE;
+                        phoneScreen = 0;
+                    }
+                }
+                return true;
+            }
+            return true;
+        }
+
+        // 2. Pause Menu (ESCAPE)
         if (keycode == Input.Keys.ESCAPE) {
+            if (state == GameplayState.RHYTHM_STATE && rhythmGame.isFailed()) {
+                rhythmGame.handleKeyPress(keycode);
+                return true;
+            }
             if (state != GameplayState.PAUSED_STATE) {
                 previousState = state;
                 state = GameplayState.PAUSED_STATE;
                 if (rhythmMusic != null && rhythmMusic.isPlaying()) {
                     rhythmMusic.pause();
                 }
+            } else {
+                state = (previousState != null && previousState != GameplayState.PAUSED_STATE) ? previousState : GameplayState.EXPLORATION_STATE;
             }
             return true;
         }
 
+        // 3. Open Phone Overlay (TAB in Exploration)
         if (keycode == Input.Keys.TAB) {
             if (state == GameplayState.EXPLORATION_STATE) {
-                previousState = state;
+                if (gameState.day == 26 && !gameState.day26EventDone) {
+                    loadNode("BLOCK_DAY26_SHERLY");
+                    return true;
+                }
+                if (gameState.day == 24 && !gameState.day24EventDone) {
+                    loadNode("BLOCK_DAY24_RANIA");
+                    return true;
+                }
+                previousState = GameplayState.EXPLORATION_STATE;
                 state = GameplayState.PHONE_STATE;
                 phoneScreen = 0;
-                return true;
-            } else if (state == GameplayState.PHONE_STATE) {
-                state = previousState;
                 return true;
             }
         }
@@ -1393,91 +2279,124 @@ public class GameplayScreen implements Screen, InputProcessor {
         float ry = touchPoint.y;
         
         if (state == GameplayState.PAUSED_STATE) {
-            float btnW = 200f;
-            float btnH = 50f;
-            float bx = (VIRTUAL_WIDTH - btnW) / 2f;
             float menuW = 400f;
             float menuH = 450f;
             float mx = (VIRTUAL_WIDTH - menuW) / 2f;
             float my = (VIRTUAL_HEIGHT - menuH) / 2f;
-            
-            // Resume
-            if (rx >= bx && rx <= bx + btnW && ry >= my + 350 && ry <= my + 350 + btnH) {
-                state = previousState;
-                if (state == GameplayState.RHYTHM_STATE && rhythmMusic != null && rhythmGame.isActive()) {
-                    rhythmMusic.play();
+
+            if (isSaveOverlayActive) {
+                float btnW = 300f;
+                float btnH = 60f;
+                float bx = (VIRTUAL_WIDTH - btnW) / 2f;
+
+                // Slot 1
+                if (rx >= bx && rx <= bx + btnW && ry >= my + 280 && ry <= my + 280 + btnH) {
+                    saveGameToSlot(1);
+                    return true;
+                }
+                // Slot 2
+                if (rx >= bx && rx <= bx + btnW && ry >= my + 190 && ry <= my + 190 + btnH) {
+                    saveGameToSlot(2);
+                    return true;
+                }
+                // Slot 3
+                if (rx >= bx && rx <= bx + btnW && ry >= my + 100 && ry <= my + 100 + btnH) {
+                    saveGameToSlot(3);
+                    return true;
+                }
+                // Kembali
+                if (rx >= bx && rx <= bx + btnW && ry >= my + 30 && ry <= my + 30 + 45) {
+                    isSaveOverlayActive = false;
+                    saveSuccessTimer = 0f;
+                    return true;
                 }
                 return true;
-            }
-            // Exit
-            if (rx >= bx && rx <= bx + btnW && ry >= my + 40 && ry <= my + 40 + btnH) {
-                game.setScreen(new MainMenuScreen(game));
-                return true;
-            }
-            // Vol -
-            if (rx >= bx - 60 && rx <= bx - 20 && ry >= my + 260 && ry <= my + 300) {
-                SettingsManager.setVolume(SettingsManager.getVolume() - 0.1f);
-                game.updateMusicVolume();
-                if (rhythmMusic != null) rhythmMusic.setVolume(SettingsManager.getVolume());
-                return true;
-            }
-            // Vol +
-            if (rx >= bx + btnW + 20 && rx <= bx + btnW + 60 && ry >= my + 260 && ry <= my + 300) {
-                SettingsManager.setVolume(SettingsManager.getVolume() + 0.1f);
-                game.updateMusicVolume();
-                if (rhythmMusic != null) rhythmMusic.setVolume(SettingsManager.getVolume());
-                return true;
-            }
-            // Easy
-            if (rx >= mx + 20 && rx <= mx + 120 && ry >= my + 150 && ry <= my + 190) {
-                SettingsManager.setDifficulty(0);
-                return true;
-            }
-            // Medium
-            if (rx >= mx + 150 && rx <= mx + 250 && ry >= my + 150 && ry <= my + 190) {
-                SettingsManager.setDifficulty(1);
-                return true;
-            }
-            // Hard
-            if (rx >= mx + 280 && rx <= mx + 380 && ry >= my + 150 && ry <= my + 190) {
-                SettingsManager.setDifficulty(2);
-                return true;
+            } else {
+                float btnW = 200f;
+                float btnH = 50f;
+                float bx = (VIRTUAL_WIDTH - btnW) / 2f;
+
+                // Resume
+                if (rx >= bx && rx <= bx + btnW && ry >= my + 350 && ry <= my + 350 + btnH) {
+                    state = previousState;
+                    if (state == GameplayState.RHYTHM_STATE && rhythmMusic != null && rhythmGame.isActive()) {
+                        rhythmMusic.play();
+                    }
+                    return true;
+                }
+                // Save Game
+                if (rx >= bx && rx <= bx + btnW && ry >= my + 95 && ry <= my + 95 + 45) {
+                    isSaveOverlayActive = true;
+                    saveSuccessTimer = 0f;
+                    return true;
+                }
+                // Exit
+                if (rx >= bx && rx <= bx + btnW && ry >= my + 40 && ry <= my + 40 + btnH) {
+                    game.setScreen(new MainMenuScreen(game));
+                    return true;
+                }
+                // Vol -
+                if (rx >= bx - 60 && rx <= bx - 20 && ry >= my + 260 && ry <= my + 300) {
+                    SettingsManager.setVolume(SettingsManager.getVolume() - 0.1f);
+                    game.updateMusicVolume();
+                    if (rhythmMusic != null) rhythmMusic.setVolume(SettingsManager.getVolume());
+                    return true;
+                }
+                // Vol +
+                if (rx >= bx + btnW + 20 && rx <= bx + btnW + 60 && ry >= my + 260 && ry <= my + 300) {
+                    SettingsManager.setVolume(SettingsManager.getVolume() + 0.1f);
+                    game.updateMusicVolume();
+                    if (rhythmMusic != null) rhythmMusic.setVolume(SettingsManager.getVolume());
+                    return true;
+                }
+                // Easy
+                if (rx >= mx + 20 && rx <= mx + 120 && ry >= my + 150 && ry <= my + 190) {
+                    SettingsManager.setDifficulty(0);
+                    return true;
+                }
+                // Medium
+                if (rx >= mx + 150 && rx <= mx + 250 && ry >= my + 150 && ry <= my + 190) {
+                    SettingsManager.setDifficulty(1);
+                    return true;
+                }
+                // Hard
+                if (rx >= mx + 280 && rx <= mx + 380 && ry >= my + 150 && ry <= my + 190) {
+                    SettingsManager.setDifficulty(2);
+                    return true;
+                }
             }
             return true;
         }
 
         if (state == GameplayState.PHONE_STATE) {
-            float phoneW = 350f;
-            float phoneH = 600f;
+            float phoneW = 360f;
+            float phoneH = 620f;
             float px = (VIRTUAL_WIDTH - phoneW) / 2f;
             float py = (VIRTUAL_HEIGHT - phoneH) / 2f;
-            
+
+            // Clicking outside the phone body closes the phone
+            if (rx < px || rx > px + phoneW || ry < py || ry > py + phoneH) {
+                state = previousState != null ? previousState : GameplayState.EXPLORATION_STATE;
+                phoneScreen = 0;
+                return true;
+            }
+
             if (phoneScreen == 0) {
-                // Contacts
-                for (int i = 0; i < 4; i++) {
-                    float rectY = py + phoneH - 140 - (i * 70);
-                    if (rx >= px + 20 && rx <= px + phoneW - 20 && ry >= rectY && ry <= rectY + 60) {
-                        phoneScreen = i + 1; // 1=Clara, 2=Bagas, 3=Rania, 4=Sherly
-                        return true;
-                    }
+                // Click chat app icon / item row
+                if (rx >= px + 10 && rx <= px + phoneW - 10 && ry >= py + phoneH - 120 && ry <= py + phoneH - 30) {
+                    phoneScreen = 1;
+                    return true;
                 }
-            } else {
-                // Back
-                if (rx >= px + 20 && rx <= px + 100 && ry >= py + phoneH - 120 && ry <= py + phoneH - 80) {
+            } else if (phoneScreen == 1) {
+                // Back button / top bar
+                if (ry >= py + phoneH - 55) {
                     phoneScreen = 0;
                     return true;
                 }
-                // Ajak Latihan
-                if (rx >= px + 20 && rx <= px + phoneW - 20 && ry >= py + 90 && ry <= py + 140) {
-                    state = previousState;
-                    loadNode("PHONE_INVITE_PRACTICE");
-                    return true;
-                }
-                // Ajak Date (only for Clara)
-                if (phoneScreen == 1) {
-                    if (rx >= px + 20 && rx <= px + phoneW - 20 && ry >= py + 30 && ry <= py + 80) {
-                        state = previousState;
-                        loadNode("PHONE_CLARA_DATE");
+                // Reply button in Ch2
+                if (("CHAPTER_2".equals(gameState.chapter) || (gameState.day <= 20 && gameState.day >= 10)) && !gameState.ch2ChatRead) {
+                    if (rx >= px + phoneW / 2f - 70f && rx <= px + phoneW / 2f + 70f && ry >= py + 10 && ry <= py + 48) {
+                        gameState.ch2ChatRead = true;
                         return true;
                     }
                 }
@@ -1515,7 +2434,11 @@ public class GameplayScreen implements Screen, InputProcessor {
                         if (choice.action != null) {
                             choice.action.execute(gameState);
                         }
-                        loadNode(choice.nextNodeId);
+                        if (choice.nextNodeId != null && choice.nextNodeId.equals("CH1_DAY_NEXT") && getPendingMandatoryBlockNode() != null) {
+                            loadNode(getPendingMandatoryBlockNode());
+                        } else {
+                            loadNode(choice.nextNodeId);
+                        }
                         return true;
                     }
                 }
@@ -1586,6 +2509,12 @@ public class GameplayScreen implements Screen, InputProcessor {
         if (kamarKostTexture != null) kamarKostTexture.dispose();
         if (jalanRayaTexture != null) jalanRayaTexture.dispose();
         if (kostOutsideTexture != null) kostOutsideTexture.dispose();
+        if (kedaiKopiTexture != null) kedaiKopiTexture.dispose();
+        if (jalanSetapakTexture != null) jalanSetapakTexture.dispose();
+        if (jalanDanauTexture != null) jalanDanauTexture.dispose();
+        if (luarRuangStudioTexture != null) luarRuangStudioTexture.dispose();
+        if (dalamStudioTexture != null) dalamStudioTexture.dispose();
+        if (ukmSeniTexture != null) ukmSeniTexture.dispose();
 
         if (prologTextures != null) {
             for (Texture tex : prologTextures) {
@@ -1607,6 +2536,11 @@ public class GameplayScreen implements Screen, InputProcessor {
                 if (tex != null) tex.dispose();
             }
         }
+        if (bagasIdleTextures != null) {
+            for (Texture tex : bagasIdleTextures) {
+                if (tex != null) tex.dispose();
+            }
+        }
         if (rhythmMusic != null) {
             rhythmMusic.dispose();
         }
@@ -1619,6 +2553,179 @@ public class GameplayScreen implements Screen, InputProcessor {
             }
             expressionTextures.clear();
         }
+
+        if (backgroundMap != null) {
+            for (Texture tex : backgroundMap.values()) {
+                if (tex != null) tex.dispose();
+            }
+            backgroundMap.clear();
+        }
+    }
+
+    private String getPendingMandatoryBlockNode() {
+        if (gameState == null) return null;
+        String ch = gameState.chapter;
+        int d = gameState.day;
+
+        if ("CHAPTER_1".equals(ch) || "PROLOGUE".equals(ch)) {
+            if (d == 28 && !gameState.day28EventDone && currentZone != ExplorationZone.KANTIN) {
+                return "BLOCK_BAGAS_QUEST";
+            } else if (d == 26 && !gameState.day26EventDone && currentZone != ExplorationZone.KEDAI_KOPI) {
+                return "BLOCK_SHERLY_QUEST";
+            } else if (d == 24 && !gameState.day24EventDone && currentZone != ExplorationZone.STUDIO_SENI) {
+                return "BLOCK_RANIA_QUEST";
+            }
+            return null;
+        } else if ("CHAPTER_2".equals(ch) || (d <= 20 && d >= 10)) {
+            if (!gameState.ch2CompositionDone && currentZone != ExplorationZone.LUAR_RUANG_STUDIO && currentZone != ExplorationZone.DALAM_STUDIO) {
+                return "BLOCK_CH2_QUEST";
+            }
+        } else if ("CHAPTER_3".equals(ch)) {
+            if (!gameState.ch3AldoDone && currentZone != ExplorationZone.KEDAI_KOPI && currentZone != ExplorationZone.UKM_MUSIK) {
+                return "BLOCK_CH3_QUEST";
+            }
+        } else if ("CHAPTER_4".equals(ch)) {
+            return null;
+        }
+        return null;
+    }
+
+    private Texture getBackgroundTexture(String bgPath) {
+        if (bgPath == null || bgPath.isEmpty()) return null;
+        if (backgroundMap.containsKey(bgPath)) {
+            return backgroundMap.get(bgPath);
+        }
+        try {
+            if (Gdx.files.internal(bgPath).exists()) {
+                Texture tex = new Texture(Gdx.files.internal(bgPath));
+                tex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+                backgroundMap.put(bgPath, tex);
+                return tex;
+            }
+        } catch (Exception e) {
+            Gdx.app.error("GameplayScreen", "Failed to load background texture at " + bgPath + ": " + e.getMessage());
+        }
+        return null;
+    }
+
+    private Texture getZoneTexture(ExplorationZone zone) {
+        if (zone == null) return kamarKostTexture;
+        switch (zone) {
+            case KOST:              return kamarKostTexture;
+            case KOST_OUTSIDE:      return kostOutsideTexture;
+            case WARKOP:            return jalanRayaTexture;
+            case TAMAN_KAMPUS:      return tamanKampusTexture;
+            case KANTIN:            return kantinTexture;
+            case LORONG_1:          return lorong1Texture;
+            case LORONG_2:          return lorong2Texture;
+            case KEDAI_KOPI:        return kedaiKopiTexture;
+            case KAMPUS:            return studioTexture;
+            case STUDIO_SENI:       return ukmSeniTexture;
+            case JALAN_SETAPAK:     return jalanSetapakTexture;
+            case JALAN_DANAU:       return jalanDanauTexture;
+            case LUAR_RUANG_STUDIO: return luarRuangStudioTexture;
+            case DALAM_STUDIO:      return dalamStudioTexture;
+            case UKM_MUSIK:         return studioTexture;
+            default:                return kamarKostTexture;
+        }
+    }
+
+    private void loadCreditsJson() {
+        if (creditsLoaded) return;
+        try {
+            if (Gdx.files.internal("credits.json").exists()) {
+                JsonReader reader = new JsonReader();
+                JsonValue root = reader.parse(Gdx.files.internal("credits.json"));
+                creditsTitle = root.getString("title", "ECHO SUMMER");
+                creditsSubtitle = root.getString("subtitle", "");
+                creditsClosingQuote = root.getString("closingQuote", "");
+                creditsCopyright = root.getString("copyright", "");
+
+                creditsList.clear();
+                if (root.has("credits")) {
+                    for (JsonValue secVal = root.get("credits").child(); secVal != null; secVal = secVal.next()) {
+                        CreditSection sec = new CreditSection();
+                        sec.header = secVal.getString("header", "");
+                        if (secVal.has("names")) {
+                            for (JsonValue nameVal = secVal.get("names").child(); nameVal != null; nameVal = nameVal.next()) {
+                                sec.names.add(nameVal.asString());
+                            }
+                        }
+                        creditsList.add(sec);
+                    }
+                }
+                creditsLoaded = true;
+            }
+        } catch (Exception e) {
+            Gdx.app.error("GameplayScreen", "Failed to load credits.json: " + e.getMessage());
+        }
+    }
+
+    private void renderMovieCredits(float delta) {
+        loadCreditsJson();
+        creditsScrollY += delta * 55f;
+
+        SpriteBatch batch = game.getBatch();
+
+        // Dark Movie Overlay
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(new Color(0.02f, 0.03f, 0.07f, 0.95f));
+        shapeRenderer.rect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+        shapeRenderer.end();
+        Gdx.gl.glDisable(GL20.GL_BLEND);
+
+        batch.begin();
+
+        float curY = creditsScrollY;
+
+        // Title
+        font.setColor(Color.GOLD);
+        font.getData().setScale(2.2f);
+        font.draw(batch, creditsTitle, 0f, curY, VIRTUAL_WIDTH, Align.center, false);
+        font.getData().setScale(1.0f);
+        curY -= 50f;
+
+        // Subtitle
+        font.setColor(Color.LIGHT_GRAY);
+        font.draw(batch, creditsSubtitle, 0f, curY, VIRTUAL_WIDTH, Align.center, false);
+        curY -= 80f;
+
+        // Credit Sections
+        for (CreditSection sec : creditsList) {
+            font.setColor(Color.YELLOW);
+            font.getData().setScale(1.2f);
+            font.draw(batch, sec.header, 0f, curY, VIRTUAL_WIDTH, Align.center, false);
+            font.getData().setScale(1.0f);
+            curY -= 35f;
+
+            font.setColor(Color.WHITE);
+            for (String name : sec.names) {
+                font.draw(batch, name, 0f, curY, VIRTUAL_WIDTH, Align.center, false);
+                curY -= 30f;
+            }
+            curY -= 40f;
+        }
+
+        // Closing Quote
+        if (creditsClosingQuote != null && !creditsClosingQuote.isEmpty()) {
+            font.setColor(Color.CYAN);
+            font.draw(batch, creditsClosingQuote, 150f, curY, VIRTUAL_WIDTH - 300f, Align.center, true);
+            curY -= 100f;
+        }
+
+        // Copyright
+        if (creditsCopyright != null && !creditsCopyright.isEmpty()) {
+            font.setColor(Color.GRAY);
+            font.draw(batch, creditsCopyright, 0f, curY, VIRTUAL_WIDTH, Align.center, false);
+            curY -= 60f;
+        }
+
+        // Skip Prompt
+        font.setColor(Color.ORANGE);
+        font.draw(batch, "[ SPACE / ENTER ] Tekan untuk kembali ke Menu Utama", 0f, 40f, VIRTUAL_WIDTH, Align.center, false);
+
+        batch.end();
     }
 
     private String detectExpression(String text) {
@@ -1707,9 +2814,29 @@ public class GameplayScreen implements Screen, InputProcessor {
         sherlyFiles.put("FINAL_marah", "expression/SHERLY MASA FINAL/marah-Photoroom (6).png");
         sherlyFiles.put("FINAL_sedih", "expression/SHERLY MASA FINAL/sedih-Photoroom (6).png");
 
+        Map<String, String> raniaFiles = new HashMap<>();
+        // RANIA MAHASISWA
+        raniaFiles.put("MAHASISWA_bahagia", "expression/RANIA MAHASISWA/bahagia-Photoroom (9).png");
+        raniaFiles.put("MAHASISWA_biasa aja", "expression/RANIA MAHASISWA/biasa aja-Photoroom (9).png");
+        raniaFiles.put("MAHASISWA_cemas", "expression/RANIA MAHASISWA/cemas-Photoroom (9).png");
+        raniaFiles.put("MAHASISWA_malu", "expression/RANIA MAHASISWA/malu-Photoroom (8).png");
+        raniaFiles.put("MAHASISWA_marah", "expression/RANIA MAHASISWA/marah-Photoroom (8).png");
+        raniaFiles.put("MAHASISWA_sedih", "expression/RANIA MAHASISWA/sedih-Photoroom (9).png");
+
+        Map<String, String> bagasFiles = new HashMap<>();
+        // BAGAS MAHASISWA
+        bagasFiles.put("MAHASISWA_bahagia", "expression/BAGAS MAHASISWA/bahagia-Photoroom.png");
+        bagasFiles.put("MAHASISWA_biasa aja", "expression/BAGAS MAHASISWA/biasa aja-Photoroom.png");
+        bagasFiles.put("MAHASISWA_cemas", "expression/BAGAS MAHASISWA/cemas-Photoroom.png");
+        bagasFiles.put("MAHASISWA_malu", "expression/BAGAS MAHASISWA/malu-Photoroom.png");
+        bagasFiles.put("MAHASISWA_marah", "expression/BAGAS MAHASISWA/marah-Photoroom.png");
+        bagasFiles.put("MAHASISWA_sedih", "expression/BAGAS MAHASISWA/sedih-Photoroom.png");
+
         loadCharacterExpressionMap("clara", claraFiles);
         loadCharacterExpressionMap("raksha", rakshaFiles);
         loadCharacterExpressionMap("sherly", sherlyFiles);
+        loadCharacterExpressionMap("rania", raniaFiles);
+        loadCharacterExpressionMap("bagas", bagasFiles);
     }
 
     private void loadCharacterExpressionMap(String charKey, Map<String, String> files) {
@@ -1726,10 +2853,78 @@ public class GameplayScreen implements Screen, InputProcessor {
         expressionTextures.put(charKey, textures);
     }
 
+    private Texture getCharacterExpressionTexture(String charKey, String expressionName) {
+        if (expressionTextures == null || !expressionTextures.containsKey(charKey)) return null;
+        Map<String, Texture> charMap = expressionTextures.get(charKey);
+        if (charMap == null || charMap.isEmpty()) return null;
+
+        if (expressionName == null || expressionName.isEmpty()) {
+            expressionName = "MAHASISWA_biasa aja";
+        }
+
+        // 1. Exact match
+        if (charMap.containsKey(expressionName)) {
+            return charMap.get(expressionName);
+        }
+
+        // 2. Prepend MAHASISWA_ if missing outfit prefix
+        if (!expressionName.contains("_")) {
+            String prefixed = "MAHASISWA_" + expressionName;
+            if (charMap.containsKey(prefixed)) {
+                return charMap.get(prefixed);
+            }
+        }
+
+        // 3. Fallback to default outfit expressions
+        if (charMap.containsKey("MAHASISWA_biasa aja")) {
+            return charMap.get("MAHASISWA_biasa aja");
+        }
+        if (charMap.containsKey("LATIHAN_biasa aja")) {
+            return charMap.get("LATIHAN_biasa aja");
+        }
+        if (charMap.containsKey("FINAL_biasa aja")) {
+            return charMap.get("FINAL_biasa aja");
+        }
+
+        // 4. Return any loaded expression texture for character
+        return charMap.values().iterator().next();
+    }
+
     private void updateDialogueExpressions(String speaker, String text) {
-        String nodeExpr = currentNode.expression;
-        if (nodeExpr == null || nodeExpr.isEmpty()) {
-            nodeExpr = detectExpression(text);
+        String nodeId = currentNode != null ? currentNode.nodeId : "";
+
+        // Determine active right character first before evaluating speaker expression defaults
+        if (nodeId != null && (nodeId.startsWith("BLOCK_") || nodeId.startsWith("PHONE_") || currentBackground == kamarKostTexture || currentBackground == kostOutsideTexture)) {
+            activeRightCharacter = "None";
+        } else if ("Sherly".equalsIgnoreCase(speaker) || (nodeId != null && nodeId.contains("SHERLY"))) {
+            activeRightCharacter = "Sherly";
+        } else if ("Rania".equalsIgnoreCase(speaker) || (nodeId != null && nodeId.contains("RANIA"))) {
+            activeRightCharacter = "Rania";
+        } else if ("Bagas".equalsIgnoreCase(speaker) || (nodeId != null && nodeId.contains("BAGAS"))) {
+            activeRightCharacter = "Bagas";
+        } else if ("Clara".equalsIgnoreCase(speaker) || (nodeId != null && (nodeId.contains("CLARA") || nodeId.startsWith("PROLOG_"))) || currentZone == ExplorationZone.DALAM_STUDIO || currentZone == ExplorationZone.UKM_MUSIK || currentZone == ExplorationZone.KAMPUS) {
+            activeRightCharacter = "Clara";
+        } else {
+            activeRightCharacter = "None";
+        }
+
+        String nodeExpr = currentNode != null ? currentNode.expression : null;
+        if (nodeExpr == null || nodeExpr.isEmpty() || "biasa aja".equals(nodeExpr)) {
+            // Auto detect from bracketed actions in text if present
+            if (text != null) {
+                String lowerText = text.toLowerCase();
+                if (lowerText.contains("(tersenyum)") || lowerText.contains("(tertawa)") || lowerText.contains("(bersemangat)") || lowerText.contains("hehe")) {
+                    nodeExpr = "bahagia";
+                } else if (lowerText.contains("(terkejut)") || lowerText.contains("(pucat)") || lowerText.contains("(panik)") || lowerText.contains("(cemas)") || lowerText.contains("(bingung)")) {
+                    nodeExpr = "cemas";
+                } else if (lowerText.contains("(menangis)") || lowerText.contains("(frustrasi)") || lowerText.contains("(sedih)") || lowerText.contains("(lesu)")) {
+                    nodeExpr = "sedih";
+                } else if (lowerText.contains("(marah)") || lowerText.contains("(kesal)") || lowerText.contains("(bentak)")) {
+                    nodeExpr = "marah";
+                } else if (lowerText.contains("(malu)") || lowerText.contains("(canggung)")) {
+                    nodeExpr = "malu";
+                }
+            }
         }
 
         // If the expression string has an outfit prefix, use it. Otherwise prepend MAHASISWA_
@@ -1748,10 +2943,14 @@ public class GameplayScreen implements Screen, InputProcessor {
                         
                         if (charName.equals("clara")) {
                             claraExpression = exprName;
-                        } else if (charName.equals("raksha")) {
+                        } else if (charName.equals("raksha") || charName.equals("raka")) {
                             rakshaExpression = exprName;
                         } else if (charName.equals("sherly")) {
                             sherlyExpression = exprName;
+                        } else if (charName.equals("rania")) {
+                            raniaExpression = exprName;
+                        } else if (charName.equals("bagas")) {
+                            bagasExpression = exprName;
                         }
                     }
                 }
@@ -1761,32 +2960,26 @@ public class GameplayScreen implements Screen, InputProcessor {
                     exprName = "MAHASISWA_" + exprName;
                 }
                 
-                if ("Clara".equalsIgnoreCase(speaker)) {
+                String lowerSpeaker = speaker != null ? speaker.toLowerCase() : "";
+                if ("clara".equalsIgnoreCase(speaker)) {
                     claraExpression = exprName;
-                    rakshaExpression = "MAHASISWA_biasa aja";
-                } else if ("Sherly".equalsIgnoreCase(speaker)) {
+                } else if ("sherly".equalsIgnoreCase(speaker)) {
                     sherlyExpression = exprName;
-                    rakshaExpression = "MAHASISWA_biasa aja";
-                } else if ("Raksha".equalsIgnoreCase(speaker)) {
+                } else if ("rania".equalsIgnoreCase(speaker)) {
+                    raniaExpression = exprName;
+                } else if ("bagas".equalsIgnoreCase(speaker)) {
+                    bagasExpression = exprName;
+                } else if ("raksha".equalsIgnoreCase(speaker) || "raka".equalsIgnoreCase(speaker) || lowerSpeaker.contains("raksha") || lowerSpeaker.contains("raka")) {
                     rakshaExpression = exprName;
-                    if ("Clara".equals(activeRightCharacter)) {
-                        claraExpression = "MAHASISWA_biasa aja";
-                    } else {
-                        sherlyExpression = "MAHASISWA_biasa aja";
-                    }
                 } else {
                     // Update all to default if no speaker
                     rakshaExpression = "MAHASISWA_biasa aja";
                     claraExpression = "MAHASISWA_biasa aja";
                     sherlyExpression = "MAHASISWA_biasa aja";
+                    raniaExpression = "MAHASISWA_biasa aja";
+                    bagasExpression = "MAHASISWA_biasa aja";
                 }
             }
-        }
-
-        if ("Sherly".equalsIgnoreCase(speaker)) {
-            activeRightCharacter = "Sherly";
-        } else if ("Clara".equalsIgnoreCase(speaker)) {
-            activeRightCharacter = "Clara";
         }
     }
 
@@ -1889,9 +3082,30 @@ public class GameplayScreen implements Screen, InputProcessor {
                     loadNode(transNextNode);
                     if (state == GameplayState.EXPLORATION_STATE) {
                         rakshaX = 100f;
+                        rakshaFacingRight = true;
+                        currentZone = ExplorationZone.KOST;
+                        currentBackground = kamarKostTexture;
                     }
                 }
                 break;
+        }
+    }
+
+    private String getDayTransitionQuote(int targetDay) {
+        if (targetDay >= 28) {
+            return "\"Setiap langkah awal selalu penuh keraguan, namun kepakan nada pertama akan membuka jalan.\"";
+        } else if (targetDay >= 24) {
+            return "\"Harmoni tidak tercipta dari satu alat musik, melainkan dari detak jantung yang saling menyatu.\"";
+        } else if (targetDay >= 20) {
+            return "\"Di balik papan tulis studio yang penuh erased notes, mimpi besar mulai menemukan bentuknya.\"";
+        } else if (targetDay >= 15) {
+            return "\"Bahkan jika senar retak dan tempo melambat, jangan pernah mematikan nyala di dalam dada.\"";
+        } else if (targetDay >= 9) {
+            return "\"Suara yang jujur tidak pernah goyah oleh badai prasangka.\"";
+        } else if (targetDay >= 1) {
+            return "\"Lampu panggung menyala terang. Inilah momen saat waktu berhenti untuk menyambut suara kita.\"";
+        } else {
+            return "\"Resonansi lagu kita akan terus bergema melintasi waktu...\"";
         }
     }
 
@@ -1945,25 +3159,170 @@ public class GameplayScreen implements Screen, InputProcessor {
             
             batch.begin();
             if (transPhase == 1) {
-                font.setColor(1f, 1f, 1f, transAlpha);
-                font.getData().setScale(1.2f);
-                font.draw(batch, transNarrativeText, 150f, VIRTUAL_HEIGHT / 2f + 100f, VIRTUAL_WIDTH - 300f, Align.center, true);
-                font.getData().setScale(1.0f);
+                dialogueFont.setColor(1f, 1f, 1f, transAlpha);
+                dialogueFont.getData().setScale(1.1f);
+                dialogueFont.draw(batch, transNarrativeText, 150f, VIRTUAL_HEIGHT / 2f + 60f, VIRTUAL_WIDTH - 300f, Align.center, true);
+                dialogueFont.getData().setScale(1.0f);
             } else if (transPhase == 2) {
-                font.setColor(Color.GOLD.r, Color.GOLD.g, Color.GOLD.b, transAlpha);
-                font.getData().setScale(2.5f);
-                font.draw(batch, "SISA HARI: " + Math.round(transNumberDisplay), 0f, VIRTUAL_HEIGHT / 2f + 20f, VIRTUAL_WIDTH, Align.center, false);
-                font.getData().setScale(1.0f);
+                int currentDayDisplay = Math.round(transNumberDisplay);
+                
+                dialogueFont.setColor(0.3f, 0.8f, 1.0f, transAlpha * 0.85f);
+                dialogueFont.getData().setScale(1.1f);
+                dialogueFont.draw(batch, "⏳ SISA WAKTU MENJELANG FESTIVAL", 0f, VIRTUAL_HEIGHT / 2f + 90f, VIRTUAL_WIDTH, Align.center, false);
+                
+                dialogueFont.setColor(0.2f, 0.95f, 0.5f, transAlpha);
+                dialogueFont.getData().setScale(2.5f);
+                dialogueFont.draw(batch, "SISA HARI: " + currentDayDisplay, 0f, VIRTUAL_HEIGHT / 2f + 20f, VIRTUAL_WIDTH, Align.center, false);
+                
+                dialogueFont.setColor(1.0f, 0.9f, 0.4f, transAlpha * 0.9f);
+                dialogueFont.getData().setScale(1.0f);
+                String quote = getDayTransitionQuote(currentDayDisplay);
+                dialogueFont.draw(batch, quote, 150f, VIRTUAL_HEIGHT / 2f - 60f, VIRTUAL_WIDTH - 300f, Align.center, true);
             } else if (transPhase == 3) {
-                font.setColor(Color.GOLD.r, Color.GOLD.g, Color.GOLD.b, transAlpha);
-                font.getData().setScale(2.0f);
-                font.draw(batch, transChapterTitle, 0f, VIRTUAL_HEIGHT / 2f + 60f, VIRTUAL_WIDTH, Align.center, false);
-                font.getData().setScale(1.2f);
-                font.setColor(1f, 1f, 1f, transAlpha);
-                font.draw(batch, "\"" + transChapterSubtitle + "\"", 0f, VIRTUAL_HEIGHT / 2f - 10f, VIRTUAL_WIDTH, Align.center, false);
-                font.getData().setScale(1.0f);
+                dialogueFont.setColor(0.3f, 0.85f, 1.0f, transAlpha);
+                dialogueFont.getData().setScale(2.4f);
+                dialogueFont.draw(batch, transChapterTitle, 0f, VIRTUAL_HEIGHT / 2f + 70f, VIRTUAL_WIDTH, Align.center, false);
+                dialogueFont.getData().setScale(1.3f);
+                dialogueFont.setColor(1f, 1f, 1f, transAlpha);
+                dialogueFont.draw(batch, "\"" + transChapterSubtitle + "\"", 0f, VIRTUAL_HEIGHT / 2f - 10f, VIRTUAL_WIDTH, Align.center, false);
+                
+                dialogueFont.setColor(1.0f, 0.9f, 0.4f, transAlpha * 0.85f);
+                dialogueFont.getData().setScale(1.0f);
+                String chapterQuote = getDayTransitionQuote(transToDay);
+                dialogueFont.draw(batch, chapterQuote, 150f, VIRTUAL_HEIGHT / 2f - 80f, VIRTUAL_WIDTH - 300f, Align.center, true);
             }
             batch.end();
         }
+    }
+
+    
+    private String getCurrentQuest() {
+        if (gameState.day == 30) return "🎯 Objektif (Hari 30): Temui Clara di Ruang UKM Musik.";
+        if (gameState.day == 29) return "🎯 Objektif (Hari 29): Temui Clara di Ruang UKM Musik.";
+        if (gameState.day == 28) {
+            if (gameState.day28EventDone) {
+                return "🎯 Objektif (Hari 28): Kembali ke Kamar Kost dan tidur untuk melanjutkan hari.";
+            } else {
+                return "🎯 Objektif (Hari 28): Temui Bagas di Kantin Kampus.";
+            }
+        }
+        if (gameState.day == 26) {
+            if (gameState.day26EventDone) {
+                return "🎯 Objektif (Hari 26): Kembali ke Kamar Kost dan tidur untuk melanjutkan hari.";
+            } else {
+                return "🎯 Objektif (Hari 26): Ajak Sherly jadi manajer band di Kedai Kopi.";
+            }
+        }
+        if (gameState.day == 24) {
+            if (gameState.day24EventDone) {
+                return "🎯 Objektif (Hari 24): Kembali ke Kamar Kost dan tidur untuk melanjutkan hari.";
+            } else {
+                return "🎯 Objektif (Hari 24): Temui Rania di Studio Seni Kampus.";
+            }
+        }
+        if (gameState.day == 20) return "🎯 Objektif (Hari 20): Latihan pertama dengan band (Di Ruang Studio).";
+        if (gameState.day == 18) return "🎯 Objektif (Hari 18): Garap lagu bersama band (Di Ruang Studio).";
+        if (gameState.day == 15) return "🎯 Objektif (Hari 15): Latihan intensif bersama band (Di Ruang Studio).";
+        if (gameState.day == 12) return "🎯 Objektif (Hari 12): Gladi bersih bersama band (Di Ruang Studio).";
+        if (gameState.day == 8) return "🎯 Objektif (Hari 8): Bubar band? (Di Kamar Kost).";
+        if (gameState.day == 7) return "🎯 Objektif (Hari 7): Kabur (Temui Clara di Kampus).";
+        if (gameState.day == 5) return "🎯 Objektif (Hari 5): Bukti Aldo terungkap (Di Kamar Kost).";
+        if (gameState.day == 3) return "🎯 Objektif (Hari 3): Latihan terakhir (Di Kamar Kost).";
+        if (gameState.day == 1) return "🎯 Objektif (Hari 1): Echo Fest Panggung Festival! (Di Kamar Kost).";
+        
+        return "🎯 Objektif (Hari " + gameState.day + "): Latihan Gitar di Kamar Kost [E] / Cek HP [TAB].";
+    }
+
+    private void renderSaveOverlay() {
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(new Color(0f, 0f, 0f, 0.7f));
+        shapeRenderer.rect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+        
+        float menuW = 400f;
+        float menuH = 450f;
+        float mx = (VIRTUAL_WIDTH - menuW) / 2f;
+        float my = (VIRTUAL_HEIGHT - menuH) / 2f;
+        
+        shapeRenderer.setColor(new Color(0.1f, 0.12f, 0.18f, 1f));
+        shapeRenderer.rect(mx, my, menuW, menuH);
+        
+        // Slot buttons
+        float btnW = 300f;
+        float btnH = 60f;
+        float bx = (VIRTUAL_WIDTH - btnW) / 2f;
+        
+        shapeRenderer.setColor(Color.LIGHT_GRAY);
+        shapeRenderer.rect(bx, my + 280, btnW, btnH);
+        shapeRenderer.rect(bx, my + 190, btnW, btnH);
+        shapeRenderer.rect(bx, my + 100, btnW, btnH);
+        
+        shapeRenderer.setColor(Color.DARK_GRAY);
+        shapeRenderer.rect(bx, my + 30, btnW, 45);
+        
+        shapeRenderer.end();
+        
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(Color.WHITE);
+        shapeRenderer.rect(mx, my, menuW, menuH);
+        shapeRenderer.end();
+        Gdx.gl.glDisable(GL20.GL_BLEND);
+        
+        game.getBatch().begin();
+        choiceFont.setColor(Color.WHITE);
+        choiceFont.draw(game.getBatch(), "PILIH SLOT SIMPAN", mx, my + menuH - 20, menuW, Align.center, false);
+        
+        String meta1 = SaveManager.getSaveMetadata("savegame_1.dat");
+        String meta2 = SaveManager.getSaveMetadata("savegame_2.dat");
+        String meta3 = SaveManager.getSaveMetadata("savegame_3.dat");
+        
+        choiceFont.setColor(Color.BLACK);
+        choiceFont.draw(game.getBatch(), "SLOT 1", bx, my + 280 + 50, btnW, Align.center, false);
+        choiceFont.draw(game.getBatch(), "SLOT 2", bx, my + 190 + 50, btnW, Align.center, false);
+        choiceFont.draw(game.getBatch(), "SLOT 3", bx, my + 100 + 50, btnW, Align.center, false);
+        
+        font.setColor(Color.DARK_GRAY);
+        font.draw(game.getBatch(), meta1.replace("\n", "  |  "), bx, my + 280 + 22, btnW, Align.center, false);
+        font.draw(game.getBatch(), meta2.replace("\n", "  |  "), bx, my + 190 + 22, btnW, Align.center, false);
+        font.draw(game.getBatch(), meta3.replace("\n", "  |  "), bx, my + 100 + 22, btnW, Align.center, false);
+        
+        choiceFont.setColor(Color.WHITE);
+        choiceFont.draw(game.getBatch(), "Kembali", bx, my + 30 + 32, btnW, Align.center, false);
+        
+        if (saveSuccessTimer > 0) {
+            font.setColor(Color.YELLOW);
+            font.draw(game.getBatch(), "Game Berhasil Disimpan di Slot " + savedSlotNum + "!", mx, my + 78, menuW, Align.center, false);
+        }
+        
+        game.getBatch().end();
+    }
+
+    private void loadNodeBackgroundOnly(String nodeId) {
+        if (nodeId == null || !storyNodes.containsKey(nodeId)) return;
+        if (nodeId.equals("PROLOG_START")) {
+            currentBackground = prologTextures.get(0);
+        } else if (nodeId.startsWith("PROLOG_")) {
+            currentBackground = prologTextures.get(4);
+        } else if (nodeId.equals("CH1_INTRO") || nodeId.equals("CH1_DAY_NEXT")) {
+            currentBackground = kostOutsideTexture;
+        } else if (nodeId.equals("CH1_KOST_CHOICES") || nodeId.equals("CH1_KOST_CANCEL") || nodeId.equals("CH1_CHOICE_C_RESULT") || nodeId.equals("CH1_PRACTICE_END") || nodeId.equals("CH3_POST_RESULT_1") || nodeId.equals("CH3_ALDO_RESULT_1")) {
+            currentBackground = kamarKostTexture;
+        } else if (nodeId.startsWith("CH3_BUS_")) {
+            currentBackground = jalanRayaTexture;
+        } else if (nodeId.startsWith("END_") || nodeId.startsWith("CREDITS_") || nodeId.equals("GAME_OVER")) {
+            currentBackground = skyTexture;
+        } else {
+            currentBackground = studioTexture;
+        }
+    }
+
+    private void saveGameToSlot(int slotNum) {
+        String slotFile = "savegame_" + slotNum + ".dat";
+        gameState.currentZone = currentZone.name();
+        gameState.rakshaX = rakshaX;
+        gameState.gameplayState = (previousState != null ? previousState : GameplayState.EXPLORATION_STATE).name();
+        SaveManager.saveGame(gameState, slotFile);
+        savedSlotNum = slotNum;
+        saveSuccessTimer = 2.0f;
     }
 }

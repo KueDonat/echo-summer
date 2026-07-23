@@ -11,6 +11,7 @@ public class DialogueNode {
     public String nextId;
     public NodeAction action;
     public String expression = null;
+    public String background = null;
 
     // Cinematic Transition Metadata
     public boolean isTransition = false;

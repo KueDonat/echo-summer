@@ -1,0 +1,36 @@
+{
+  "title": "ECHO SUMMER",
+  "subtitle": "Sebuah Kisah Tentang Kebangkitan, Musik, dan Persahabatan",
+  "credits": [
+    {
+      "header": "DIBUAT DAN DIKEMBANGKAN OLEH",
+      "names": ["KELOMPOK 3 1B TRPL"]
+    },
+    {
+      "header": "PENULIS CERITA & SUTRADARA",
+      "names": ["Alif Ikrom Akbar & Muhammad Azhar Pratama Arianto"]
+    },
+    {
+      "header": "DESAIN KARAKTER & ARTWORK",
+      "names": ["Erina Putri & Muhammad Azhar Pratama Arianto"]
+    },
+    {
+      "header": "KOMPOSER MUSIK & EFEK SUARA",
+      "names": ["Alif Ikrom Akbar"]
+    },
+    {
+      "header": "PENGEMBANG SISTEM GAMEPLAY",
+      "names": ["Alif Ikrom Akbar"]
+    },
+    {
+      "header": "UCAPAN TERIMA KASIH KHUSUS",
+      "names": [
+        "Dosen dan Instruktur Struktur Data Bu Rara & Kak Afni",
+        "Rekan - Rekan Kelompok 3 1B TRPL",
+        "Teman - Teman 1B TRPL 2026"
+      ]
+    }
+  ],
+  "closingQuote": "\"Musik bukanlah tentang seberapa sempurna nada yang kamu mainkan, melainkan tentang seberapa dalam jiwamu bergema di setiap detiknya.\"",
+  "copyright": "© 2026 Echo Summer. All Rights Reserved."
+}

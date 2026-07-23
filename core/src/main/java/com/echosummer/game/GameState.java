@@ -34,6 +34,19 @@ public class GameState {
     public int performanceScore = 0;
     public boolean guitarStringBroken = false;
     public boolean claraSang = false;
+
+    // Event completion state
+    public boolean day28EventDone = false;
+    public boolean day26EventDone = false;
+    public boolean day24EventDone = false;
+    public boolean ch2CompositionDone = false;
+    public boolean ch3AldoDone = false;
+    public boolean ch2ChatRead = false;
+
+    // Resuming state
+    public String currentZone = "KOST";
+    public float rakshaX = 100f;
+    public String gameplayState = "DIALOGUE_STATE";
     
     public void reset() {
         chapter = "PROLOGUE";
@@ -55,6 +68,15 @@ public class GameState {
         performanceScore = 0;
         guitarStringBroken = false;
         claraSang = false;
+        day28EventDone = false;
+        day26EventDone = false;
+        day24EventDone = false;
+        ch2CompositionDone = false;
+        ch3AldoDone = false;
+        ch2ChatRead = false;
+        currentZone = "KOST";
+        rakshaX = 100f;
+        gameplayState = "DIALOGUE_STATE";
     }
     
     public String serialize() {
@@ -78,6 +100,15 @@ public class GameState {
         sb.append("performanceScore=").append(performanceScore).append("\n");
         sb.append("guitarStringBroken=").append(guitarStringBroken).append("\n");
         sb.append("claraSang=").append(claraSang).append("\n");
+        sb.append("day28EventDone=").append(day28EventDone).append("\n");
+        sb.append("day26EventDone=").append(day26EventDone).append("\n");
+        sb.append("day24EventDone=").append(day24EventDone).append("\n");
+        sb.append("ch2CompositionDone=").append(ch2CompositionDone).append("\n");
+        sb.append("ch3AldoDone=").append(ch3AldoDone).append("\n");
+        sb.append("ch2ChatRead=").append(ch2ChatRead).append("\n");
+        sb.append("currentZone=").append(currentZone).append("\n");
+        sb.append("rakshaX=").append(rakshaX).append("\n");
+        sb.append("gameplayState=").append(gameplayState).append("\n");
         return sb.toString();
     }
     
@@ -112,7 +143,16 @@ public class GameState {
             if (map.containsKey("performanceScore")) performanceScore = Integer.parseInt(map.get("performanceScore"));
             if (map.containsKey("guitarStringBroken")) guitarStringBroken = Boolean.parseBoolean(map.get("guitarStringBroken"));
             if (map.containsKey("claraSang")) claraSang = Boolean.parseBoolean(map.get("claraSang"));
-        } catch (NumberFormatException e) {
+            if (map.containsKey("day28EventDone")) day28EventDone = Boolean.parseBoolean(map.get("day28EventDone"));
+            if (map.containsKey("day26EventDone")) day26EventDone = Boolean.parseBoolean(map.get("day26EventDone"));
+            if (map.containsKey("day24EventDone")) day24EventDone = Boolean.parseBoolean(map.get("day24EventDone"));
+            if (map.containsKey("ch2CompositionDone")) ch2CompositionDone = Boolean.parseBoolean(map.get("ch2CompositionDone"));
+            if (map.containsKey("ch3AldoDone")) ch3AldoDone = Boolean.parseBoolean(map.get("ch3AldoDone"));
+            if (map.containsKey("ch2ChatRead")) ch2ChatRead = Boolean.parseBoolean(map.get("ch2ChatRead"));
+            if (map.containsKey("currentZone")) currentZone = map.get("currentZone");
+            if (map.containsKey("rakshaX")) rakshaX = Float.parseFloat(map.get("rakshaX"));
+            if (map.containsKey("gameplayState")) gameplayState = map.get("gameplayState");
+        } catch (Exception e) {
             Gdx.app.error("GameState", "Error parsing save state: " + e.getMessage());
         }
     }

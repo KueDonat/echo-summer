@@ -22,7 +22,6 @@ import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +31,7 @@ import java.util.List;
  * - Two-line bold title: ECHO SUMMER.
  * - Heartbeat line below the title.
  * - 6 custom buttons with torn-paper style backgrounds and circular icons.
+ * - Support for Slot Load Game and Continue from latest save.
  */
 public class MainMenuScreen implements Screen {
     private final Main game;
@@ -39,6 +39,7 @@ public class MainMenuScreen implements Screen {
     private Skin skin;
     private Texture backgroundTexture;
     private Texture heartbeatTexture;
+    private Table loadTable;
     
     // Textures for buttons and icons so they can be disposed
     private final List<Texture> managedTextures = new ArrayList<>();
@@ -62,11 +63,17 @@ public class MainMenuScreen implements Screen {
         // 3. Initialize UI Assets and Fonts
         createSkinAndAssets();
 
-        // 3. Construct Layout Table
-        Table mainTable = new Table();
+        // 3. Construct Layout Tables
+        final Table mainTable = new Table();
         mainTable.setFillParent(true);
         mainTable.left().top();
         mainTable.padLeft(80).padTop(60);
+
+        loadTable = new Table();
+        loadTable.setFillParent(true);
+        loadTable.left().top();
+        loadTable.padLeft(80).padTop(60);
+        loadTable.setVisible(false);
 
         // Title Style
         Label.LabelStyle titleStyle = new Label.LabelStyle(skin.getFont("titleFont"), new Color(0.97f, 0.96f, 0.95f, 1f));
@@ -81,6 +88,7 @@ public class MainMenuScreen implements Screen {
         Button newGameBtn = createMenuButton("NEW GAME", "Mulai kisah baru", "new_game");
         Button loadGameBtn = createMenuButton("LOAD GAME", "Muat permainan", "load_game");
         Button galleryBtn = createMenuButton("GALLERY", "Lihat ilustrasi & momen", "gallery");
+        Button creditsBtn = createMenuButton("CREDITS", "Kredit & Pengembang", "credits");
         Button settingsBtn = createMenuButton("SETTINGS", "Pengaturan permainan", "settings");
         Button exitBtn = createMenuButton("EXIT", "Keluar dari Echo Summer", "exit");
 
@@ -88,7 +96,7 @@ public class MainMenuScreen implements Screen {
         configureButton(continueBtn, new Runnable() {
             @Override
             public void run() {
-                loadSavedGame();
+                continueLatestGame();
             }
         });
 
@@ -102,7 +110,7 @@ public class MainMenuScreen implements Screen {
         configureButton(loadGameBtn, new Runnable() {
             @Override
             public void run() {
-                loadSavedGame();
+                showLoadMenu(mainTable);
             }
         });
 
@@ -110,6 +118,13 @@ public class MainMenuScreen implements Screen {
             @Override
             public void run() {
                 Gdx.app.log("MainMenuScreen", "Opening Gallery (Not implemented yet)...");
+            }
+        });
+
+        configureButton(creditsBtn, new Runnable() {
+            @Override
+            public void run() {
+                openCredits();
             }
         });
 
@@ -130,16 +145,18 @@ public class MainMenuScreen implements Screen {
         // Build Table Hierarchy
         mainTable.add(titleEcho).align(Align.left).row();
         mainTable.add(titleSummer).align(Align.left).padTop(-12).row();
-        mainTable.add(heartbeatLine).align(Align.left).padTop(10).padBottom(25).width(320).height(30).row();
+        mainTable.add(heartbeatLine).align(Align.left).padTop(10).padBottom(20).width(320).height(30).row();
         
-        mainTable.add(continueBtn).width(350).height(70).padBottom(10).align(Align.left).row();
-        mainTable.add(newGameBtn).width(350).height(70).padBottom(10).align(Align.left).row();
-        mainTable.add(loadGameBtn).width(350).height(70).padBottom(10).align(Align.left).row();
-        mainTable.add(galleryBtn).width(350).height(70).padBottom(10).align(Align.left).row();
-        mainTable.add(settingsBtn).width(350).height(70).padBottom(10).align(Align.left).row();
-        mainTable.add(exitBtn).width(350).height(70).align(Align.left);
+        mainTable.add(continueBtn).width(350).height(58).padBottom(6).align(Align.left).row();
+        mainTable.add(newGameBtn).width(350).height(58).padBottom(6).align(Align.left).row();
+        mainTable.add(loadGameBtn).width(350).height(58).padBottom(6).align(Align.left).row();
+        mainTable.add(galleryBtn).width(350).height(58).padBottom(6).align(Align.left).row();
+        mainTable.add(creditsBtn).width(350).height(58).padBottom(6).align(Align.left).row();
+        mainTable.add(settingsBtn).width(350).height(58).padBottom(6).align(Align.left).row();
+        mainTable.add(exitBtn).width(350).height(58).align(Align.left);
 
         stage.addActor(mainTable);
+        stage.addActor(loadTable);
     }
 
     private void createSkinAndAssets() {
@@ -149,7 +166,7 @@ public class MainMenuScreen implements Screen {
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("NotoSans-Regular.ttf"));
         FreeTypeFontParameter parameter = new FreeTypeFontParameter();
 
-        // 1. Large Title Font (with shadow and outline for premium look & high contrast)
+        // 1. Large Title Font
         parameter.size = 72;
         parameter.borderWidth = 2f;
         parameter.borderColor = new Color(0.05f, 0.08f, 0.16f, 0.6f);
@@ -164,12 +181,12 @@ public class MainMenuScreen implements Screen {
         parameter.shadowOffsetX = 0;
         parameter.shadowOffsetY = 0;
 
-        // 2. Button Title Font (Bold style size)
+        // 2. Button Title Font
         parameter.size = 18;
         BitmapFont buttonTitleFont = generator.generateFont(parameter);
         skin.add("buttonTitleFont", buttonTitleFont);
 
-        // 3. Button Subtitle Font (Muted normal font)
+        // 3. Button Subtitle Font
         parameter.size = 12;
         BitmapFont buttonSubtitleFont = generator.generateFont(parameter);
         skin.add("buttonSubtitleFont", buttonSubtitleFont);
@@ -200,7 +217,6 @@ public class MainMenuScreen implements Screen {
         pixmap.setColor(color);
         
         for (int y = 0; y < height; y++) {
-            // Jagged tooth pattern on the right edge
             int toothSize = 10;
             int toothPhase = y % toothSize;
             int indent = (toothPhase < toothSize / 2) ? toothPhase : (toothSize - toothPhase);
@@ -225,28 +241,21 @@ public class MainMenuScreen implements Screen {
         pixmap.setColor(new Color(0.97f, 0.96f, 0.95f, 0.9f));
         int yOff = height / 2;
         
-        // Left baseline
         pixmap.drawLine(0, yOff, 220, yOff);
         pixmap.drawLine(0, yOff + 1, 220, yOff + 1);
 
-        // ECG Pulse
-        // 1. Dip down
         pixmap.drawLine(220, yOff, 224, yOff + 3);
         pixmap.drawLine(220, yOff + 1, 224, yOff + 4);
 
-        // 2. Rise up
         pixmap.drawLine(224, yOff + 3, 230, 2);
         pixmap.drawLine(224, yOff + 4, 230, 3);
 
-        // 3. Deep drop
         pixmap.drawLine(230, 2, 236, 28);
         pixmap.drawLine(230, 3, 236, 29);
 
-        // 4. Return to baseline
         pixmap.drawLine(236, 28, 240, yOff);
         pixmap.drawLine(236, 29, 240, yOff + 1);
 
-        // Right baseline
         pixmap.drawLine(240, yOff, width, yOff);
         pixmap.drawLine(240, yOff + 1, width, yOff + 1);
 
@@ -284,6 +293,7 @@ public class MainMenuScreen implements Screen {
         } else if (type.equals("load_game")) {
             pixmap.fillRectangle(center - 10, center - 5, 20, 11);
             pixmap.fillRectangle(center - 10, center - 8, 8, 3);
+            pixmap.fillRectangle(center - 6, center + 5, 7, 3);
         } else if (type.equals("gallery")) {
             pixmap.fillRectangle(center - 9, center - 7, 18, 14);
             pixmap.setColor(circleColor);
@@ -293,6 +303,13 @@ public class MainMenuScreen implements Screen {
             pixmap.fillTriangle(center - 7, center + 4, center - 1, center - 2, center + 5, center + 4);
             pixmap.fillTriangle(center - 2, center + 4, center + 2, center + 0, center + 6, center + 4);
             pixmap.fillCircle(center + 3, center - 2, 2);
+        } else if (type.equals("credits")) {
+            pixmap.fillCircle(center, center, 8);
+            pixmap.setColor(circleColor);
+            pixmap.fillCircle(center, center, 5);
+            pixmap.setColor(Color.WHITE);
+            pixmap.fillRectangle(center - 1, center - 4, 3, 2);
+            pixmap.fillRectangle(center - 1, center - 1, 3, 5);
         } else if (type.equals("settings")) {
             pixmap.fillCircle(center, center, 7);
             for (int i = 0; i < 8; i++) {
@@ -389,40 +406,81 @@ public class MainMenuScreen implements Screen {
 
     private void startNewGame() {
         Gdx.app.log("MainMenuScreen", "Initializing new game data. Starting Prologue...");
-        game.setScreen(new GameplayScreen(game, false));
+        game.setScreen(new GameplayScreen(game, false, "savegame.dat"));
     }
 
-    private void loadSavedGame() {
-        String saveFileName = "savegame.dat";
-        Gdx.app.log("MainMenuScreen", "Attempting to load saved game...");
+    private void continueLatestGame() {
+        String latestFile = SaveManager.getLatestSaveFile();
+        Gdx.app.log("MainMenuScreen", "Continuing latest save file: " + latestFile);
         
-        try {
-            com.badlogic.gdx.files.FileHandle file = Gdx.files.local(saveFileName);
-
-            if (!file.exists()) {
-                throw new FileNotFoundException("Save file '" + saveFileName + "' does not exist.");
-            }
-
-            String saveContent = file.readString();
-            Gdx.app.log("MainMenuScreen", "Save file read successfully: " + saveContent);
-            game.setScreen(new GameplayScreen(game, true));
-
-        } catch (FileNotFoundException e) {
-            Gdx.app.error("MainMenuScreen", "Load Game Failed: " + e.getMessage());
-            
-            // Auto-recovery
-            try {
-                com.badlogic.gdx.files.FileHandle file = Gdx.files.local(saveFileName);
-                file.writeString("Level=Prologue;Timestamp=" + System.currentTimeMillis() + ";MusicTrack=EchoSummerIntro", false);
-                Gdx.app.log("MainMenuScreen", "Default save file created. Retrying loading flow...");
-                game.setScreen(new GameplayScreen(game, true));
-            } catch (Exception ex) {
-                Gdx.app.error("MainMenuScreen", "Failed to create fallback save file: " + ex.getMessage());
-            }
-
-        } catch (Exception e) {
-            Gdx.app.error("MainMenuScreen", "Unexpected I/O exception occurred: " + e.getMessage());
+        com.badlogic.gdx.files.FileHandle file = Gdx.files.local(latestFile);
+        if (file.exists()) {
+            game.setScreen(new GameplayScreen(game, true, latestFile));
+        } else {
+            Gdx.app.log("MainMenuScreen", "No saves found. Starting new game in: savegame.dat");
+            game.setScreen(new GameplayScreen(game, false, "savegame.dat"));
         }
+    }
+
+    private void showLoadMenu(final Table mainTable) {
+        mainTable.setVisible(false);
+        loadTable.clear();
+        loadTable.setVisible(true);
+
+        Label.LabelStyle titleStyle = new Label.LabelStyle(skin.getFont("titleFont"), new Color(0.97f, 0.96f, 0.95f, 1f));
+        Label loadTitleEcho = new Label("LOAD", titleStyle);
+        Label loadTitleSummer = new Label("GAME", titleStyle);
+        Image loadHeartbeatLine = new Image(heartbeatTexture);
+
+        loadTable.add(loadTitleEcho).align(Align.left).row();
+        loadTable.add(loadTitleSummer).align(Align.left).padTop(-12).row();
+        loadTable.add(loadHeartbeatLine).align(Align.left).padTop(10).padBottom(25).width(320).height(30).row();
+
+        // 3 Slots
+        for (int i = 1; i <= 3; i++) {
+            final int slotNum = i;
+            final String slotFile = "savegame_" + slotNum + ".dat";
+            String metadata = SaveManager.getSaveMetadata(slotFile);
+            boolean isEmpty = metadata.equals("Slot Kosong");
+
+            Button slotBtn = createMenuButton("SLOT " + slotNum, metadata, isEmpty ? "new_game" : "continue");
+            
+            if (!isEmpty) {
+                configureButton(slotBtn, new Runnable() {
+                    @Override
+                    public void run() {
+                        Gdx.app.log("MainMenuScreen", "Loading from Slot " + slotNum);
+                        game.setScreen(new GameplayScreen(game, true, slotFile));
+                    }
+                });
+            } else {
+                configureButton(slotBtn, new Runnable() {
+                    @Override
+                    public void run() {
+                        Gdx.app.log("MainMenuScreen", "Starting new game in Slot " + slotNum);
+                        game.setScreen(new GameplayScreen(game, false, slotFile));
+                    }
+                });
+            }
+
+            loadTable.add(slotBtn).width(350).height(70).padBottom(10).align(Align.left).row();
+        }
+
+        // Back Button
+        Button backBtn = createMenuButton("KEMBALI", "Kembali ke menu utama", "exit");
+        configureButton(backBtn, new Runnable() {
+            @Override
+            public void run() {
+                loadTable.setVisible(false);
+                mainTable.setVisible(true);
+            }
+        });
+        loadTable.add(backBtn).width(350).height(70).align(Align.left);
+    }
+
+    private void openCredits() {
+        Gdx.app.log("MainMenuScreen", "Opening credits screen...");
+        game.setScreen(new CreditsScreen(game, this));
     }
 
     private void openSettings() {

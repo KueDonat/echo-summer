@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.Align;
 import java.util.Random;
 
 /**
@@ -38,6 +39,8 @@ public class RhythmGame {
     public int perfects = 0;
     public int goods = 0;
     public int misses = 0;
+    public int combo = 0;
+    public int maxCombo = 0;
 
     public String feedback = "";
     public float feedbackTimer = 0f;
@@ -46,21 +49,32 @@ public class RhythmGame {
     private final float hitZoneY = 150f;
 
     // Precision thresholds in seconds
-    private float thresholdPerfect = 0.05f; // < 50ms
-    private float thresholdGood = 0.12f;    // < 120ms
-    private float thresholdOk = 0.20f;      // < 200ms
+    private float thresholdPerfect = 0.05f;
+    private float thresholdGood = 0.12f;
+    private float thresholdOk = 0.20f;
 
     private Music music;
     private Sound kresekSound;
     private boolean active = false;
     private float timeElapsed = 0f;
-    private final float duration = 400f; // Long enough to cover full song
+    private float duration = 400f; // Default duration
+
+    // HP / Life system
+    private float hp = 100f;
+    private final float maxHp = 100f;
+    private boolean failed = false;
+    private boolean wasFailed = false;
 
     // Lanes styling
     private final String[] laneKeys = {"D", "F", "J", "K"};
 
     public void start(Music music) {
+        start(music, 400f);
+    }
+
+    public void start(Music music, float targetDuration) {
         this.music = music;
+        this.duration = targetDuration;
 
         if (kresekSound == null) {
             try {
@@ -75,10 +89,17 @@ public class RhythmGame {
         perfects = 0;
         goods = 0;
         misses = 0;
-        feedback = "GET READY!";
+        combo = 0;
+        maxCombo = 0;
+        hp = 100f;
+        failed = false;
+        wasFailed = false;
+        feedback = "BERSIAPLAH!";
         feedbackColor = Color.YELLOW;
         feedbackTimer = 1.5f;
         timeElapsed = 0f;
+        musicStoppedTimer = 0f;
+        lastNoteTime = 0f;
         active = true;
 
         // Generate seeded chart for a consistent rhythm game
@@ -96,6 +117,14 @@ public class RhythmGame {
         return active;
     }
 
+    public boolean isFailed() {
+        return failed;
+    }
+
+    public boolean wasFailed() {
+        return wasFailed;
+    }
+
     public float getCurrentTime() {
         if (music != null && music.isPlaying()) {
             return music.getPosition();
@@ -106,64 +135,182 @@ public class RhythmGame {
     private void generateChart() {
         notes.clear();
         
-        float timeStepMultiplier = 1.0f;
         int diff = SettingsManager.getDifficulty();
         if (diff == 0) {
-            scrollSpeed = 250f;
-            thresholdPerfect = 0.08f;
-            thresholdGood = 0.16f;
-            thresholdOk = 0.25f;
-            timeStepMultiplier = 1.3f;
+            scrollSpeed = 280f;
+            thresholdPerfect = 0.05f;
+            thresholdGood = 0.10f;
+            thresholdOk = 0.16f;
         } else if (diff == 2) {
             scrollSpeed = 500f;
-            thresholdPerfect = 0.04f;
-            thresholdGood = 0.10f;
-            thresholdOk = 0.15f;
-            timeStepMultiplier = 0.75f;
+            thresholdPerfect = 0.02f;
+            thresholdGood = 0.05f;
+            thresholdOk = 0.09f;
         } else {
-            scrollSpeed = 350f;
-            thresholdPerfect = 0.05f;
-            thresholdGood = 0.12f;
-            thresholdOk = 0.20f;
-            timeStepMultiplier = 1.0f;
+            scrollSpeed = 380f;
+            thresholdPerfect = 0.035f;
+            thresholdGood = 0.08f;
+            thresholdOk = 0.13f;
         }
 
         Random rand = new Random(42);
-        float time = 3.0f;
-        int lastLane = -1;
+        float bpm = 130f;
+        float beat = 60f / bpm; // ~0.4615s
+        float halfBeat = beat / 2f; // ~0.2308s
+        float quarterBeat = beat / 4f; // ~0.1154s
+        
+        float step = quarterBeat;
+        float[] laneFreeTime = new float[4];
+        for (int i = 0; i < 4; i++) {
+            laneFreeTime[i] = 0f;
+        }
 
-        while (time < duration - 3.0f) {
-            int lane = rand.nextInt(4);
-            if (lane == lastLane) lane = (lane + 1) % 4;
+        int totalSteps = (int) ((duration - 8.0f) / step);
 
-            Note newNote = new Note(time, lane);
-            if (rand.nextFloat() < 0.2f) {
-                newNote.isSlider = true;
-                newNote.duration = (1.0f + rand.nextFloat() * 1.5f) * timeStepMultiplier;
+        for (int s = 0; s < totalSteps; s++) {
+            float time = 3.0f + s * step;
+
+            boolean isDownbeat = (s % 4 == 0);
+            boolean isUpbeat = (s % 2 == 0);
+            
+            float spawnProb = 0f;
+            if (diff == 0) { // Easy
+                if (isDownbeat) spawnProb = 0.5f;
+            } else if (diff == 1) { // Medium
+                if (isDownbeat) spawnProb = 0.7f;
+                else if (isUpbeat) spawnProb = 0.35f;
+            } else { // Hard
+                if (isDownbeat) spawnProb = 0.85f;
+                else if (isUpbeat) spawnProb = 0.6f;
+                else spawnProb = 0.25f; // stream / sixteenth note
             }
-            notes.add(newNote);
-            lastLane = lane;
 
-            if (!newNote.isSlider && rand.nextFloat() < 0.25f) {
-                notes.add(new Note(time, (lane + 2) % 4));
+            if (rand.nextFloat() > spawnProb) continue;
+
+            int freeCount = 0;
+            for (int i = 0; i < 4; i++) {
+                if (time >= laneFreeTime[i]) {
+                    freeCount++;
+                }
+            }
+            if (freeCount == 0) continue;
+
+            int chordSize = 1;
+            if (isDownbeat && freeCount >= 2) {
+                float chordProb = (diff == 0) ? 0.05f : (diff == 1 ? 0.2f : 0.4f);
+                if (rand.nextFloat() < chordProb) {
+                    chordSize = 2;
+                }
             }
 
-            time += (newNote.isSlider ? newNote.duration : 0) + (0.6f + rand.nextFloat() * 0.8f) * timeStepMultiplier;
+            Array<Integer> availableLanes = new Array<>();
+            for (int i = 0; i < 4; i++) {
+                if (time >= laneFreeTime[i]) availableLanes.add(i);
+            }
+            availableLanes.shuffle();
+
+            for (int i = 0; i < chordSize && i < availableLanes.size; i++) {
+                int lane = availableLanes.get(i);
+                Note note = new Note(time, lane);
+                
+                float sliderProb = (diff == 0) ? 0.1f : (diff == 1 ? 0.15f : 0.2f);
+                if (rand.nextFloat() < sliderProb) {
+                    note.isSlider = true;
+                    int[] sliderDurations = {4, 8, 16};
+                    int durIndex = rand.nextInt(diff == 0 ? 2 : 3);
+                    float durationSeconds = sliderDurations[durIndex] * step;
+                    note.duration = durationSeconds;
+                    laneFreeTime[lane] = time + durationSeconds + step;
+                } else {
+                    laneFreeTime[lane] = time + step;
+                }
+
+                notes.add(note);
+            }
+        }
+
+        if (notes.size > 0) {
+            Note lastNote = notes.get(notes.size - 1);
+            lastNoteTime = lastNote.targetTime + (lastNote.isSlider ? lastNote.duration : 0f) + 3.0f;
+        } else {
+            lastNoteTime = duration;
         }
     }
+
+    private void failGame() {
+        failed = true;
+        if (music != null) {
+            music.stop();
+        }
+        feedback = "GAGAL!";
+        feedbackColor = Color.RED;
+        feedbackTimer = 999f;
+    }
+
+    private void retry() {
+        failed = false;
+        wasFailed = false;
+        hp = 100f;
+        score = 0;
+        perfects = 0;
+        goods = 0;
+        misses = 0;
+        combo = 0;
+        maxCombo = 0;
+        feedback = "BERSIAPLAH!";
+        feedbackColor = Color.YELLOW;
+        feedbackTimer = 1.5f;
+        timeElapsed = 0f;
+        active = true;
+
+        generateChart();
+
+        if (music != null) {
+            music.stop();
+            music.setPosition(0);
+            music.play();
+        }
+    }
+
+    private void giveUp() {
+        failed = false;
+        wasFailed = true;
+        active = false;
+        if (music != null) {
+            music.stop();
+        }
+    }
+
+    private float lastNoteTime = 0f;
+    private float musicStoppedTimer = 0f;
 
     public void update(float delta) {
         if (!active) return;
 
-        float currentTime = getCurrentTime();
-        if (music == null || !music.isPlaying()) {
-            timeElapsed += delta;
-        } else {
-            timeElapsed = music.getPosition();
+        if (failed) {
+            if (Gdx.input.isKeyJustPressed(Input.Keys.R) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE) || Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
+                retry();
+            } else if (Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
+                giveUp();
+            }
+            return;
         }
 
-        // End condition
-        if (timeElapsed >= duration || (music != null && !music.isPlaying() && timeElapsed > 5.0f)) {
+        float currentTime = getCurrentTime();
+        if (music != null && music.isPlaying()) {
+            timeElapsed = music.getPosition();
+            musicStoppedTimer = 0f;
+        } else {
+            timeElapsed += delta;
+            musicStoppedTimer += delta;
+        }
+
+        // Robust end condition: requires 2.5 seconds of continuous stopped audio or chart completion so transient stutters never end the game prematurely
+        boolean musicEnded = (music != null && musicStoppedTimer >= 2.5f && timeElapsed > 10.0f);
+        boolean chartEnded = (lastNoteTime > 0 && timeElapsed >= lastNoteTime);
+        boolean durationEnded = (timeElapsed >= duration);
+
+        if (musicEnded || chartEnded || durationEnded) {
             active = false;
             if (music != null) {
                 music.stop();
@@ -183,6 +330,9 @@ public class RhythmGame {
                 feedbackColor = Color.GOLD;
                 score += 50;
                 perfects++;
+                combo++;
+                maxCombo = Math.max(maxCombo, combo);
+                hp = Math.min(maxHp, hp + 2f);
                 feedbackTimer = 0.5f;
             }
 
@@ -192,6 +342,19 @@ public class RhythmGame {
                 feedbackColor = Color.RED;
                 feedbackTimer = 0.5f;
                 misses++;
+                combo = 0;
+
+                float hpDrain = 8f;
+                int diff = SettingsManager.getDifficulty();
+                if (diff == 0) hpDrain = 6f;
+                else if (diff == 2) hpDrain = 12f;
+                hp = Math.max(0f, hp - hpDrain);
+
+                if (hp <= 0f && !failed) {
+                    failGame();
+                    return;
+                }
+
                 if (kresekSound != null) kresekSound.play(SettingsManager.getVolume());
             }
         }
@@ -207,7 +370,18 @@ public class RhythmGame {
      * Maps keys to lanes: D -> 0, F -> 1, J -> 2, K -> 3.
      */
     public boolean handleKeyPress(int keycode) {
-        if (!active) return false;
+        if (!active) {
+            if (failed) {
+                if (keycode == Input.Keys.R || keycode == Input.Keys.SPACE || keycode == Input.Keys.ENTER) {
+                    retry();
+                    return true;
+                } else if (keycode == Input.Keys.ESCAPE) {
+                    giveUp();
+                    return true;
+                }
+            }
+            return false;
+        }
 
         int lane = -1;
         if (keycode == Input.Keys.D) lane = 0;
@@ -245,15 +419,24 @@ public class RhythmGame {
                 feedbackColor = Color.GOLD;
                 score += 50;
                 perfects++;
+                combo++;
+                maxCombo = Math.max(maxCombo, combo);
+                hp = Math.min(maxHp, hp + 2f);
             } else if (minTimeDiff <= thresholdGood) {
                 feedback = "GOOD!";
                 feedbackColor = Color.GREEN;
                 score += 30;
                 goods++;
+                combo++;
+                maxCombo = Math.max(maxCombo, combo);
+                hp = Math.min(maxHp, hp + 1f);
             } else {
                 feedback = "OK!";
                 feedbackColor = Color.CYAN;
                 score += 15;
+                combo++;
+                maxCombo = Math.max(maxCombo, combo);
+                hp = Math.min(maxHp, hp + 0.5f);
             }
             feedbackTimer = 0.5f;
             return true;
@@ -262,6 +445,18 @@ public class RhythmGame {
             feedbackColor = Color.RED;
             feedbackTimer = 0.5f;
             misses++;
+            combo = 0;
+
+            float hpDrain = 2f;
+            int diff = SettingsManager.getDifficulty();
+            if (diff == 0) hpDrain = 1f;
+            else if (diff == 2) hpDrain = 4f;
+            hp = Math.max(0f, hp - hpDrain);
+
+            if (hp <= 0f && !failed) {
+                failGame();
+            }
+
             if (kresekSound != null) kresekSound.play(SettingsManager.getVolume());
         }
 
@@ -292,6 +487,18 @@ public class RhythmGame {
                     feedbackColor = Color.RED;
                     feedbackTimer = 0.5f;
                     misses++;
+                    combo = 0;
+
+                    float hpDrain = 8f;
+                    int diff = SettingsManager.getDifficulty();
+                    if (diff == 0) hpDrain = 6f;
+                    else if (diff == 2) hpDrain = 12f;
+                    hp = Math.max(0f, hp - hpDrain);
+
+                    if (hp <= 0f && !failed) {
+                        failGame();
+                    }
+
                     if (kresekSound != null) kresekSound.play(SettingsManager.getVolume());
                 } else {
                     n.hit = true;
@@ -299,6 +506,9 @@ public class RhythmGame {
                     feedbackColor = Color.GOLD;
                     score += 50;
                     perfects++;
+                    combo++;
+                    maxCombo = Math.max(maxCombo, combo);
+                    hp = Math.min(maxHp, hp + 2f);
                     feedbackTimer = 0.5f;
                 }
                 return true;
@@ -308,98 +518,182 @@ public class RhythmGame {
     }
 
     public void draw(ShapeRenderer shape, SpriteBatch batch, BitmapFont font, float width, float height) {
-        if (!active) return;
+        if (!active && !failed) return;
 
         float currentTime = getCurrentTime();
         float laneWidth = 80f;
         float totalWidth = laneWidth * 4;
         float startX = (width - totalWidth) / 2f;
 
-        // 1. Draw lanes backgrounds using ShapeRenderer
-        Gdx.gl.glEnable(Gdx.gl.GL_BLEND);
-        shape.begin(ShapeRenderer.ShapeType.Filled);
+        if (active) {
+            // 1. Draw lanes backgrounds using ShapeRenderer
+            Gdx.gl.glEnable(Gdx.gl.GL_BLEND);
+            shape.begin(ShapeRenderer.ShapeType.Filled);
 
-        // Draw overall track background
-        shape.setColor(new Color(0.02f, 0.04f, 0.1f, 0.6f));
-        shape.rect(startX, 0, totalWidth, height);
+            // Draw overall track background
+            shape.setColor(new Color(0.02f, 0.04f, 0.1f, 0.6f));
+            shape.rect(startX, 0, totalWidth, height);
 
-        // Draw individual lanes separator lines
-        shape.setColor(new Color(0.2f, 0.3f, 0.5f, 0.4f));
-        for (int i = 1; i < 4; i++) {
-            shape.rect(startX + i * laneWidth - 1, 0, 2, height);
-        }
-
-        // Draw target line/zone
-        shape.setColor(new Color(0.97f, 0.96f, 0.95f, 0.8f));
-        shape.rect(startX, hitZoneY - 4, totalWidth, 8);
-
-        // Draw lane targets circles
-        for (int i = 0; i < 4; i++) {
-            shape.setColor(new Color(0.97f, 0.96f, 0.95f, 0.25f));
-            shape.circle(startX + i * laneWidth + laneWidth / 2f, hitZoneY, 24);
-        }
-
-        // Draw falling notes based on their target times
-        for (int i = 0; i < notes.size; i++) {
-            Note n = notes.get(i);
-            if (n.hit || n.missed) continue;
-
-            // Derive Y position directly from time offset
-            float timeOffset = n.targetTime - currentTime;
-            float ny = hitZoneY + timeOffset * scrollSpeed;
-            float endY = ny;
-            if (n.isSlider) {
-                endY = hitZoneY + (n.targetTime + n.duration - currentTime) * scrollSpeed;
+            // Draw individual lanes separator lines
+            shape.setColor(new Color(0.2f, 0.3f, 0.5f, 0.4f));
+            for (int i = 1; i < 4; i++) {
+                shape.rect(startX + i * laneWidth - 1, 0, 2, height);
             }
 
-            // Only draw note if it's visible on screen
-            if (endY > 0 && ny < height + 50) {
-                // Color based on lane
-                Color laneColor;
-                if (n.lane == 0) laneColor = new Color(0.95f, 0.3f, 0.4f, 1f); // Red
-                else if (n.lane == 1) laneColor = new Color(0.3f, 0.8f, 0.4f, 1f); // Green
-                else if (n.lane == 2) laneColor = new Color(0.2f, 0.6f, 0.95f, 1f); // Blue
-                else laneColor = new Color(0.95f, 0.8f, 0.2f, 1f); // Yellow
+            // Draw target line/zone
+            shape.setColor(new Color(0.97f, 0.96f, 0.95f, 0.8f));
+            shape.rect(startX, hitZoneY - 4, totalWidth, 8);
 
-                shape.setColor(laneColor);
+            // Check key status for visual feedback beams & glow
+            boolean[] lanePressed = new boolean[4];
+            lanePressed[0] = Gdx.input.isKeyPressed(Input.Keys.D);
+            lanePressed[1] = Gdx.input.isKeyPressed(Input.Keys.F);
+            lanePressed[2] = Gdx.input.isKeyPressed(Input.Keys.J);
+            lanePressed[3] = Gdx.input.isKeyPressed(Input.Keys.K);
 
-                float nx = startX + n.lane * laneWidth + laneWidth / 2f;
+            for (int i = 0; i < 4; i++) {
+                if (lanePressed[i]) {
+                    shape.setColor(new Color(1f, 1f, 1f, 0.45f));
+                    shape.circle(startX + i * laneWidth + laneWidth / 2f, hitZoneY, 26);
+                    
+                    shape.setColor(new Color(1f, 1f, 1f, 0.08f));
+                    shape.rect(startX + i * laneWidth, hitZoneY, laneWidth, height - hitZoneY);
+                } else {
+                    shape.setColor(new Color(0.97f, 0.96f, 0.95f, 0.25f));
+                    shape.circle(startX + i * laneWidth + laneWidth / 2f, hitZoneY, 24);
+                }
+            }
 
+            // Draw HP Bar Background
+            shape.setColor(new Color(0.1f, 0.1f, 0.15f, 0.6f));
+            shape.rect(startX + totalWidth + 25f, hitZoneY, 16f, height - 250f);
+
+            // Draw HP Bar Fill
+            float fillHeight = (height - 250f) * (hp / maxHp);
+            if (hp > 50f) {
+                shape.setColor(new Color(0.2f, 0.8f, 0.4f, 0.9f));
+            } else if (hp > 20f) {
+                shape.setColor(new Color(0.9f, 0.6f, 0.1f, 0.9f));
+            } else {
+                shape.setColor(new Color(0.9f, 0.2f, 0.2f, 0.9f));
+            }
+            shape.rect(startX + totalWidth + 25f, hitZoneY, 16f, fillHeight);
+
+            // Draw falling notes
+            for (int i = 0; i < notes.size; i++) {
+                Note n = notes.get(i);
+                if (n.hit || n.missed) continue;
+
+                float timeOffset = n.targetTime - currentTime;
+                float ny = hitZoneY + timeOffset * scrollSpeed;
+                float endY = ny;
                 if (n.isSlider) {
-                    shape.setColor(new Color(laneColor.r, laneColor.g, laneColor.b, 0.6f));
-                    float drawNy = Math.max(ny, hitZoneY);
-                    if (n.isHeld) drawNy = hitZoneY;
-                    shape.rect(nx - 10, drawNy, 20, endY - drawNy);
+                    endY = hitZoneY + (n.targetTime + n.duration - currentTime) * scrollSpeed;
                 }
 
-                if (!n.isHeld) {
+                if (endY > 0 && ny < height + 50) {
+                    Color laneColor;
+                    if (n.lane == 0) laneColor = new Color(0.95f, 0.3f, 0.4f, 1f);
+                    else if (n.lane == 1) laneColor = new Color(0.3f, 0.8f, 0.4f, 1f);
+                    else if (n.lane == 2) laneColor = new Color(0.2f, 0.6f, 0.95f, 1f);
+                    else laneColor = new Color(0.95f, 0.8f, 0.2f, 1f);
+
                     shape.setColor(laneColor);
-                    shape.circle(nx, ny, 20);
-                    shape.setColor(Color.WHITE);
-                    shape.circle(nx, ny, 8);
+
+                    float nx = startX + n.lane * laneWidth + laneWidth / 2f;
+
+                    if (n.isSlider) {
+                        shape.setColor(new Color(laneColor.r, laneColor.g, laneColor.b, 0.6f));
+                        float drawNy = Math.max(ny, hitZoneY);
+                        if (n.isHeld) drawNy = hitZoneY;
+                        shape.rect(nx - 10, drawNy, 20, endY - drawNy);
+                    }
+
+                    if (!n.isHeld) {
+                        shape.setColor(laneColor);
+                        shape.circle(nx, ny, 20);
+                        shape.setColor(Color.WHITE);
+                        shape.circle(nx, ny, 8);
+                    }
                 }
             }
-        }
-        shape.end();
-        Gdx.gl.glDisable(Gdx.gl.GL_BLEND);
 
-        // 2. Draw text HUD
-        batch.begin();
-        font.setColor(Color.WHITE);
-        font.draw(batch, "LATIHAN GITAR - \"SEANDAINYA - VIERRA\"", width / 2f - 200f, height - 40, 400, 1, false);
-        font.draw(batch, "Score: " + score + "   (P: " + perfects + "  G: " + goods + "  M: " + misses + ")", width / 2f - 200f, height - 70, 400, 1, false);
+            shape.end();
 
-        // Draw key labels under targets
-        for (int i = 0; i < 4; i++) {
-            float kx = startX + i * laneWidth + laneWidth / 2f - 8;
-            font.draw(batch, laneKeys[i], kx, hitZoneY - 40);
+            // Draw HP Bar Border
+            shape.begin(ShapeRenderer.ShapeType.Line);
+            shape.setColor(new Color(1f, 1f, 1f, 0.4f));
+            shape.rect(startX + totalWidth + 25f, hitZoneY, 16f, height - 250f);
+            shape.end();
+
+            Gdx.gl.glDisable(Gdx.gl.GL_BLEND);
+
+            // 2. Draw text HUD
+            batch.begin();
+            font.setColor(Color.WHITE);
+            font.draw(batch, "LATIHAN GITAR - \"SEANDAINYA - VIERRA\"", width / 2f - 200f, height - 40, 400, 1, false);
+            font.draw(batch, "Skor: " + score + "   (P: " + perfects + "  G: " + goods + "  M: " + misses + ")", width / 2f - 200f, height - 70, 400, 1, false);
+
+            font.setColor(Color.LIGHT_GRAY);
+            font.draw(batch, "HP", startX + totalWidth + 20f, hitZoneY - 10f, 26f, 1, false);
+
+            font.setColor(Color.WHITE);
+            for (int i = 0; i < 4; i++) {
+                float kx = startX + i * laneWidth + laneWidth / 2f - 8;
+                font.draw(batch, laneKeys[i], kx, hitZoneY - 40);
+            }
+
+            // Draw combo in center
+            if (combo > 0) {
+                font.setColor(new Color(1f, 1f, 1f, 0.85f));
+                font.getData().setScale(1.6f);
+                font.draw(batch, String.valueOf(combo), startX, hitZoneY + 140f, totalWidth, Align.center, false);
+                font.getData().setScale(0.85f);
+                font.setColor(new Color(1f, 1f, 1f, 0.55f));
+                font.draw(batch, "COMBO", startX, hitZoneY + 112f, totalWidth, Align.center, false);
+                font.getData().setScale(1.0f);
+            }
+
+            // Draw feedback text centered
+            if (feedbackTimer > 0) {
+                font.setColor(feedbackColor);
+                font.getData().setScale(1.2f);
+                font.draw(batch, feedback, startX, hitZoneY + 60f, totalWidth, Align.center, false);
+                font.getData().setScale(1.0f);
+            }
+            batch.end();
         }
 
-        // Draw hit feedback text
-        if (feedbackTimer > 0) {
-            font.setColor(feedbackColor);
-            font.draw(batch, feedback, width / 2f - 100f, hitZoneY + 80, 200, 1, false);
+        // Render FAILED screen overlay
+        if (failed) {
+            Gdx.gl.glEnable(Gdx.gl.GL_BLEND);
+            shape.begin(ShapeRenderer.ShapeType.Filled);
+            shape.setColor(new Color(0f, 0f, 0.05f, 0.85f));
+            shape.rect(0, 0, width, height);
+            shape.end();
+            Gdx.gl.glDisable(Gdx.gl.GL_BLEND);
+
+            batch.begin();
+            font.setColor(Color.RED);
+            font.getData().setScale(2.5f);
+            font.draw(batch, "PERMAINAN GAGAL!", startX, height / 2f + 140f, totalWidth, Align.center, false);
+            font.getData().setScale(1.0f);
+
+            font.setColor(Color.WHITE);
+            font.draw(batch, "Kamu terlalu banyak melakukan Miss.", startX - 100f, height / 2f + 70f, totalWidth + 200f, Align.center, false);
+
+            font.setColor(Color.LIGHT_GRAY);
+            font.draw(batch, "Skor Akhir: " + score, startX, height / 2f + 10f, totalWidth, Align.center, false);
+            font.draw(batch, "Perfect: " + perfects, startX, height / 2f - 20f, totalWidth, Align.center, false);
+            font.draw(batch, "Good: " + goods, startX, height / 2f - 50f, totalWidth, Align.center, false);
+            font.draw(batch, "Miss: " + misses, startX, height / 2f - 80f, totalWidth, Align.center, false);
+            font.draw(batch, "Combo Maksimal: " + maxCombo, startX, height / 2f - 110f, totalWidth, Align.center, false);
+
+            font.setColor(Color.YELLOW);
+            font.draw(batch, "Tekan [ R / SPACE / ENTER ] untuk Mengulang Latihan", startX - 100f, height / 2f - 170f, totalWidth + 200f, Align.center, false);
+            font.setColor(Color.LIGHT_GRAY);
+            font.draw(batch, "Tekan [ ESC ] untuk Keluar / Kembali ke Kost", startX - 100f, height / 2f - 200f, totalWidth + 200f, Align.center, false);
+            batch.end();
         }
-        batch.end();
     }
 }

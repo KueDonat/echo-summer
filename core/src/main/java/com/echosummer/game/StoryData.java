@@ -80,11 +80,19 @@ public class StoryData {
                             public void execute(GameState s) {
                                 s.day--;
                                 if (s.day < 20) {
-                                    s.chapter = "CHAPTER_2";
-                                    s.day = 19;
-                                    s.dialogueNodeId = "CH2_START";
+                                    s.day = 20;
+                                }
+                                s.dialogueNodeId = "CH1_DAY_LOOP";
+                            }
+                        };
+                    } else if ("CHECK_RECRUITMENT_ACTION".equals(actionType)) {
+                        nodeAction = new DialogueNode.NodeAction() {
+                            @Override
+                            public void execute(GameState s) {
+                                if (s.day28EventDone && s.day26EventDone && s.day24EventDone) {
+                                    s.dialogueNodeId = "CHECK_CH1_COMPLETE";
                                 } else {
-                                    s.dialogueNodeId = "CH1_DAY_LOOP";
+                                    s.dialogueNodeId = "CH1_MORE_MEMBERS_LEFT";
                                 }
                             }
                         };
@@ -103,6 +111,7 @@ public class StoryData {
                                     s.songUnlocked = false;
                                     s.songQuality = 60;
                                 }
+                                s.ch2CompositionDone = true;
                                 s.chapter = "CHAPTER_3";
                                 s.day = 9;
                             }
@@ -126,6 +135,7 @@ public class StoryData {
                 }
 
                 dNode.expression = nodeVal.getString("expression", null);
+                dNode.background = nodeVal.getString("background", null);
 
                 // Parse Transition Metadata if present
                 if (nodeVal.has("transition")) {
@@ -160,6 +170,11 @@ public class StoryData {
             else if ("melody".equals(name)) s.melody = param.asString();
             else if ("mental".equals(name)) s.mental = param.asString();
             else if ("guitarStringBroken".equals(name)) s.guitarStringBroken = param.asBoolean();
+            else if ("day28EventDone".equals(name)) s.day28EventDone = param.asBoolean();
+            else if ("day26EventDone".equals(name)) s.day26EventDone = param.asBoolean();
+            else if ("day24EventDone".equals(name)) s.day24EventDone = param.asBoolean();
+            else if ("ch2CompositionDone".equals(name)) s.ch2CompositionDone = param.asBoolean();
+            else if ("ch3AldoDone".equals(name)) s.ch3AldoDone = param.asBoolean();
 
             else if ("day_set".equals(name)) s.day = param.asInt();
             else if ("money_add".equals(name)) s.money += param.asInt();
