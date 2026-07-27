@@ -78,10 +78,13 @@ public class StoryData {
                         nodeAction = new DialogueNode.NodeAction() {
                             @Override
                             public void execute(GameState s) {
-                                s.day--;
-                                if (s.day < 20) {
-                                    s.day = 20;
+                                if (s.day > 1) {
+                                    s.day--;
+                                } else {
+                                    s.day = 1;
+                                    s.chapter = "CHAPTER_4";
                                 }
+                                s.freeDayEventDone = false;
                                 s.dialogueNodeId = "CH1_DAY_LOOP";
                             }
                         };

@@ -46,7 +46,7 @@ public class SaveManager {
     }
 
     public static String getLatestSaveFile() {
-        String[] files = {"savegame.dat", "savegame_1.dat", "savegame_2.dat", "savegame_3.dat"};
+        String[] files = {"autosave.dat", "savegame.dat", "savegame_1.dat", "savegame_2.dat", "savegame_3.dat"};
         String latestFile = "savegame.dat";
         long latestTime = -1;
 

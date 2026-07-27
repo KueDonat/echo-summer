@@ -281,11 +281,32 @@ public class RhythmGame {
         }
     }
 
+    private boolean paused = false;
+
+    public void pause() {
+        paused = true;
+        if (music != null && music.isPlaying()) {
+            music.pause();
+        }
+    }
+
+    public void resume() {
+        paused = false;
+        musicStoppedTimer = 0f;
+        if (music != null && active && !failed) {
+            music.play();
+        }
+    }
+
+    public boolean isPaused() {
+        return paused;
+    }
+
     private float lastNoteTime = 0f;
     private float musicStoppedTimer = 0f;
 
     public void update(float delta) {
-        if (!active) return;
+        if (!active || paused) return;
 
         if (failed) {
             if (Gdx.input.isKeyJustPressed(Input.Keys.R) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE) || Gdx.input.isKeyJustPressed(Input.Keys.ENTER)) {
@@ -620,10 +641,24 @@ public class RhythmGame {
 
             shape.end();
 
-            // Draw HP Bar Border
+            // Draw HP Bar Border & Music Progress Bar
+            shape.begin(ShapeRenderer.ShapeType.Filled);
+            float barW = 320f;
+            float barH = 8f;
+            float barX = (width - barW) / 2f;
+            float barY = height - 120f;
+            float progress = Math.min(1.0f, Math.max(0f, currentTime / duration));
+
+            shape.setColor(new Color(0.12f, 0.15f, 0.25f, 0.8f));
+            shape.rect(barX, barY, barW, barH);
+            shape.setColor(new Color(0.2f, 0.85f, 1.0f, 0.95f));
+            shape.rect(barX, barY, barW * progress, barH);
+            shape.end();
+
             shape.begin(ShapeRenderer.ShapeType.Line);
             shape.setColor(new Color(1f, 1f, 1f, 0.4f));
             shape.rect(startX + totalWidth + 25f, hitZoneY, 16f, height - 250f);
+            shape.rect(barX, barY, barW, barH);
             shape.end();
 
             Gdx.gl.glDisable(Gdx.gl.GL_BLEND);
@@ -631,8 +666,14 @@ public class RhythmGame {
             // 2. Draw text HUD
             batch.begin();
             font.setColor(Color.WHITE);
-            font.draw(batch, "LATIHAN GITAR - \"SEANDAINYA - VIERRA\"", width / 2f - 200f, height - 40, 400, 1, false);
-            font.draw(batch, "Skor: " + score + "   (P: " + perfects + "  G: " + goods + "  M: " + misses + ")", width / 2f - 200f, height - 70, 400, 1, false);
+            font.draw(batch, "LATIHAN GITAR - \"SEANDAINYA - VIERRA\"", width / 2f - 200f, height - 35, 400, 1, false);
+            font.draw(batch, "Skor: " + score + "   (P: " + perfects + "  G: " + goods + "  M: " + misses + ")", width / 2f - 200f, height - 65, 400, 1, false);
+
+            int curSec = (int) Math.max(0, currentTime);
+            int totalSec = (int) Math.max(0, duration);
+            String timeStr = String.format("🎵 Waktu: %02d:%02d / %02d:%02d", curSec / 60, curSec % 60, totalSec / 60, totalSec % 60);
+            font.setColor(Color.GOLD);
+            font.draw(batch, timeStr, width / 2f - 200f, height - 95, 400, 1, false);
 
             font.setColor(Color.LIGHT_GRAY);
             font.draw(batch, "HP", startX + totalWidth + 20f, hitZoneY - 10f, 26f, 1, false);

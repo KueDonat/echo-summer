@@ -91,6 +91,29 @@ public class GameplayScreen implements Screen, InputProcessor {
     private Texture lorong1Texture;
     private Texture lorong2Texture;
 
+    // Night background textures (loaded from background/background malam/)
+    private Texture kamarKostMalamTexture;
+    private Texture kostOutsideMalamTexture;
+    private Texture jalanRayaMalamTexture;
+    private Texture kedaiKopiMalamTexture;
+    private Texture jalanSetapakMalamTexture;
+    private Texture jalanDanauMalamTexture;
+    private Texture luarRuangStudioMalamTexture;
+    private Texture dalamStudioMalamTexture;
+    private Texture ukmSeniMalamTexture;
+    private Texture tamanKampusMalamTexture;
+    private Texture kantinMalamTexture;
+    private Texture lorong1MalamTexture;
+    private Texture lorong2MalamTexture;
+    private Texture studioMalamTexture;
+
+    // PFP Avatars for Smartphone
+    private Texture pfpGroup;
+    private Texture pfpClara;
+    private Texture pfpBagas;
+    private Texture pfpSherly;
+    private Texture pfpRania;
+
     // EXPLORATION_STATE: Sidescrolling character controller
     private Array<Texture> walkTextures;
     private Array<Texture> idleTextures;
@@ -128,6 +151,7 @@ public class GameplayScreen implements Screen, InputProcessor {
     private String zoneTransLabel = "";
     private float zoneTransLabelAlpha = 0f;
     private float zoneTransTimer = 0f;
+    private float interactionCooldown = 0f;
 
     // Interaction zone flags (set each frame, used to drive E-key prompts)
     private boolean nearBed = false;
@@ -300,6 +324,59 @@ public class GameplayScreen implements Screen, InputProcessor {
         lorong2Texture = new Texture(Gdx.files.internal("background/background_lorong_2.png"));
         lorong2Texture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
 
+        // Load night backgrounds from background/background malam/
+        kamarKostMalamTexture = new Texture(Gdx.files.internal("background/background malam/background_kamar_kost_malam.png"));
+        kamarKostMalamTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+
+        kostOutsideMalamTexture = new Texture(Gdx.files.internal("background/background malam/background_kost_outside_malam.png"));
+        kostOutsideMalamTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+
+        jalanRayaMalamTexture = new Texture(Gdx.files.internal("background/background malam/background_jalan_raya_malam.png"));
+        jalanRayaMalamTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+
+        kedaiKopiMalamTexture = new Texture(Gdx.files.internal("background/background malam/background_kedai_kopi_malam.png"));
+        kedaiKopiMalamTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+
+        jalanSetapakMalamTexture = new Texture(Gdx.files.internal("background/background malam/background_jalan_setapak.png"));
+        jalanSetapakMalamTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+
+        jalanDanauMalamTexture = new Texture(Gdx.files.internal("background/background malam/background_jalan_danau_malam.png"));
+        jalanDanauMalamTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+
+        luarRuangStudioMalamTexture = new Texture(Gdx.files.internal("background/background malam/background_luar_ruang_studio_malam.png"));
+        luarRuangStudioMalamTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+
+        dalamStudioMalamTexture = new Texture(Gdx.files.internal("background/background malam/background_dalam_studio_malam.png"));
+        dalamStudioMalamTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+
+        ukmSeniMalamTexture = new Texture(Gdx.files.internal("background/background malam/background_ukm_seni_malam.png"));
+        ukmSeniMalamTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+
+        tamanKampusMalamTexture = new Texture(Gdx.files.internal("background/background malam/background_taman_kampus.png"));
+        tamanKampusMalamTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+
+        kantinMalamTexture = new Texture(Gdx.files.internal("background/background malam/background_kantin_malam.png"));
+        kantinMalamTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+
+        lorong1MalamTexture = new Texture(Gdx.files.internal("background/background malam/background_lorong_1_malam.png"));
+        lorong1MalamTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+
+        lorong2MalamTexture = new Texture(Gdx.files.internal("background/background malam/background_lorong_2_malam.png"));
+        lorong2MalamTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+
+        studioMalamTexture = new Texture(Gdx.files.internal("background/background malam/background_ukm_musik_malam.png"));
+        studioMalamTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+
+        try {
+            if (Gdx.files.internal("pfp/pfp_group.jpg").exists()) pfpGroup = new Texture(Gdx.files.internal("pfp/pfp_group.jpg"));
+            if (Gdx.files.internal("pfp/pfp_clara.jpg").exists()) pfpClara = new Texture(Gdx.files.internal("pfp/pfp_clara.jpg"));
+            if (Gdx.files.internal("pfp/pfp_bagas.jpg").exists()) pfpBagas = new Texture(Gdx.files.internal("pfp/pfp_bagas.jpg"));
+            if (Gdx.files.internal("pfp/pfp_sherly.jpg").exists()) pfpSherly = new Texture(Gdx.files.internal("pfp/pfp_sherly.jpg"));
+            if (Gdx.files.internal("pfp/pfp_rania.jpg").exists()) pfpRania = new Texture(Gdx.files.internal("pfp/pfp_rania.jpg"));
+        } catch (Exception e) {
+            Gdx.app.error("GameplayScreen", "Failed loading PFP textures: " + e.getMessage());
+        }
+
         // Load GameState
         if (isLoadGame) {
             gameState = SaveManager.loadGame(saveFileName);
@@ -471,10 +548,14 @@ public class GameplayScreen implements Screen, InputProcessor {
     }
 
     private void loadNode(String nodeId) {
-        if (nodeId == null || !storyNodes.containsKey(nodeId)) {
-            Gdx.app.error("GameplayScreen", "Dialogue node not found: " + nodeId);
+        if (nodeId == null || "EXPLORATION_MODE".equals(nodeId) || !storyNodes.containsKey(nodeId)) {
+            if (nodeId != null && !"EXPLORATION_MODE".equals(nodeId) && !storyNodes.containsKey(nodeId)) {
+                Gdx.app.error("GameplayScreen", "Dialogue node not found: " + nodeId);
+            }
             state = GameplayState.EXPLORATION_STATE;
+            interactionCooldown = 0.35f;
             currentNode = null;
+            updateTimeOfDay();
             return;
         }
 
@@ -518,6 +599,9 @@ public class GameplayScreen implements Screen, InputProcessor {
         // Sync HUD properties
         syncChapterWithDay();
         remainingDays = gameState.day;
+        if (nodeId.equals("FREE_DATE_CLARA_END") || nodeId.equals("CH1_PRACTICE_END")) {
+            gameState.freeDayEventDone = true;
+        }
         updateTimeOfDay();
 
         // Determine background: Prologue / Endings / Bus cutscenes use fixed assets; all gameplay dialogues match MC's current zone!
@@ -531,10 +615,20 @@ public class GameplayScreen implements Screen, InputProcessor {
             currentBackground = prologTextures.get(3);
         } else if (nodeId.startsWith("PROLOG_")) {
             currentBackground = prologTextures.get(4);
+        } else if (nodeId.startsWith("END_TRUE_2")) {
+            currentBackground = jalanRayaTexture;
+        } else if (nodeId.startsWith("END_TRUE_")) {
+            currentBackground = kantinTexture;
+        } else if (nodeId.startsWith("END_COMEDY_")) {
+            currentBackground = kantinTexture;
+        } else if (nodeId.startsWith("END_WORST_")) {
+            currentBackground = kamarKostTexture;
         } else if (nodeId.startsWith("END_") || nodeId.startsWith("CREDITS_") || nodeId.equals("GAME_OVER")) {
             currentBackground = skyTexture;
         } else if (nodeId.startsWith("CH3_BUS_")) {
             currentBackground = jalanRayaTexture;
+        } else if (nodeId.startsWith("CH3_ALDO_") || nodeId.startsWith("CH3_RUMOR_")) {
+            currentBackground = studioTexture;
         } else {
             // Guarantee background always matches MC's current location during gameplay/exploration!
             Texture zoneBg = getZoneTexture(currentZone);
@@ -546,7 +640,11 @@ public class GameplayScreen implements Screen, InputProcessor {
             }
         }
 
-        if (currentBackground == kamarKostTexture || currentBackground == kostOutsideTexture || (nodeId != null && (nodeId.startsWith("BLOCK_") || nodeId.startsWith("PHONE_")))) {
+        if (nodeId.startsWith("CREDITS_") || nodeId.equals("GAME_OVER")) {
+            creditsScrollY = -100f;
+        }
+
+        if (currentBackground == kamarKostTexture || currentBackground == kamarKostMalamTexture || currentBackground == kostOutsideTexture || currentBackground == kostOutsideMalamTexture || (nodeId != null && (nodeId.startsWith("BLOCK_") || nodeId.startsWith("PHONE_")))) {
             activeRightCharacter = "None";
         } else if (nodeId.contains("SHERLY")) {
             activeRightCharacter = "Sherly";
@@ -577,6 +675,7 @@ public class GameplayScreen implements Screen, InputProcessor {
             rakshaFacingRight = true;
             isZoneTransitioning = false;
             currentNode.text = "Hari ke-" + gameState.day + " menjelang festival.\nSisa uang: Rp" + gameState.money + ".\nBagaimana aku menghabiskan hari ini?";
+            triggerAutoSave();
         } else if (nodeId.equals("CH2_DAY_LOOP")) {
             state = GameplayState.EXPLORATION_STATE;
             currentZone = ExplorationZone.KOST;
@@ -584,6 +683,7 @@ public class GameplayScreen implements Screen, InputProcessor {
             rakshaX = 100f;
             rakshaFacingRight = true;
             isZoneTransitioning = false;
+            triggerAutoSave();
         } else if (nodeId.equals("CH3_DAY_LOOP")) {
             state = GameplayState.EXPLORATION_STATE;
             currentZone = ExplorationZone.KOST;
@@ -591,6 +691,7 @@ public class GameplayScreen implements Screen, InputProcessor {
             rakshaX = 100f;
             rakshaFacingRight = true;
             isZoneTransitioning = false;
+            triggerAutoSave();
         } else if (nodeId.equals("CH4_DAY_LOOP")) {
             state = GameplayState.EXPLORATION_STATE;
             currentZone = ExplorationZone.KOST;
@@ -598,6 +699,7 @@ public class GameplayScreen implements Screen, InputProcessor {
             rakshaX = 100f;
             rakshaFacingRight = true;
             isZoneTransitioning = false;
+            triggerAutoSave();
         } else {
             if (state == GameplayState.EXPLORATION_STATE) {
                 activeRightCharacter = "None";
@@ -613,8 +715,12 @@ public class GameplayScreen implements Screen, InputProcessor {
         if (speaker == null || speaker.isEmpty()) {
             if (rawText.contains(":")) {
                 int colonIdx = rawText.indexOf(":");
-                speaker = rawText.substring(0, colonIdx).trim();
-                text = rawText.substring(colonIdx + 1).trim();
+                String candidateSpeaker = rawText.substring(0, colonIdx).trim();
+                // Ensure candidate speaker contains no linebreaks and is short to avoid treating narrative introduction lines as speaker name
+                if (!candidateSpeaker.contains("\n") && candidateSpeaker.length() < 30) {
+                    speaker = candidateSpeaker;
+                    text = rawText.substring(colonIdx + 1).trim();
+                }
             }
         }
 
@@ -634,10 +740,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         // Autosave at transitions
         if (nodeId.endsWith("_TRANSITION") || nodeId.equals("CH1_DAY_NEXT") || nodeId.equals("CH1_INTRO") || 
             nodeId.equals("CH2_START") || nodeId.equals("CH3_START") || nodeId.equals("CH4_START")) {
-            gameState.currentZone = currentZone.name();
-            gameState.rakshaX = rakshaX;
-            gameState.gameplayState = state.name();
-            SaveManager.saveGame(gameState, saveFileName);
+            triggerAutoSave();
         }
     }
 
@@ -670,9 +773,20 @@ public class GameplayScreen implements Screen, InputProcessor {
             gameState.chapter = "CHAPTER_2";
         } else if (gameState.day <= 9 && gameState.day >= 1 && ("CHAPTER_1".equals(gameState.chapter) || "CHAPTER_2".equals(gameState.chapter))) {
             gameState.chapter = "CHAPTER_3";
-        } else if (gameState.day <= 0 && !"CHAPTER_4".equals(gameState.chapter)) {
+        } else if (gameState.day <= 0 || "CHAPTER_4".equals(gameState.chapter)) {
             gameState.chapter = "CHAPTER_4";
+            if (gameState.day < 1) gameState.day = 1;
         }
+    }
+
+    private boolean isCurrentDayEventCompleted() {
+        if (gameState == null) return false;
+        if (gameState.day == 28) return gameState.day28EventDone;
+        if (gameState.day == 26) return gameState.day26EventDone;
+        if (gameState.day == 24) return gameState.day24EventDone;
+        if (gameState.day == 20 || gameState.day == 18 || gameState.day == 15 || gameState.day == 12) return gameState.ch2CompositionDone;
+        if (gameState.day == 10 || gameState.day == 8 || gameState.day == 7 || gameState.day == 5 || gameState.day == 3) return gameState.ch3AldoDone;
+        return gameState.freeDayEventDone;
     }
 
     private void updateTimeOfDay() {
@@ -680,17 +794,68 @@ public class GameplayScreen implements Screen, InputProcessor {
         syncChapterWithDay();
         if (gameState.chapter.equals("PROLOGUE")) {
             timeOfDay = "SORE";
-        } else if (gameState.chapter.equals("CHAPTER_1")) {
-            timeOfDay = "SIANG";
-        } else if (gameState.chapter.equals("CHAPTER_2")) {
-            timeOfDay = "SORE";
-        } else if (gameState.chapter.equals("CHAPTER_3")) {
-            timeOfDay = "SORE";
         } else if (gameState.chapter.equals("CHAPTER_4")) {
             timeOfDay = "MALAM";
         } else {
-            timeOfDay = "PAGI";
+            timeOfDay = isCurrentDayEventCompleted() ? "MALAM" : "SORE";
         }
+    }
+
+    private Texture getZoneTexture(ExplorationZone zone) {
+        boolean isNight = "MALAM".equals(timeOfDay);
+        switch (zone) {
+            case KOST:              return isNight ? kamarKostMalamTexture : kamarKostTexture;
+            case KOST_OUTSIDE:      return isNight ? kostOutsideMalamTexture : kostOutsideTexture;
+            case WARKOP:            return isNight ? jalanRayaMalamTexture : jalanRayaTexture;
+            case TAMAN_KAMPUS:      return isNight ? tamanKampusMalamTexture : tamanKampusTexture;
+            case KANTIN:            return isNight ? kantinMalamTexture : kantinTexture;
+            case LORONG_1:          return isNight ? lorong1MalamTexture : lorong1Texture;
+            case LORONG_2:          return isNight ? lorong2MalamTexture : lorong2Texture;
+            case KEDAI_KOPI:        return isNight ? kedaiKopiMalamTexture : kedaiKopiTexture;
+            case STUDIO_SENI:       return isNight ? ukmSeniMalamTexture : ukmSeniTexture;
+            case JALAN_SETAPAK:     return isNight ? jalanSetapakMalamTexture : jalanSetapakTexture;
+            case JALAN_DANAU:       return isNight ? jalanDanauMalamTexture : jalanDanauTexture;
+            case LUAR_RUANG_STUDIO: return isNight ? luarRuangStudioMalamTexture : luarRuangStudioTexture;
+            case DALAM_STUDIO:      return isNight ? dalamStudioMalamTexture : dalamStudioTexture;
+            case UKM_MUSIK:         return isNight ? studioMalamTexture : studioTexture;
+            default:                return isNight ? studioMalamTexture : studioTexture;
+        }
+    }
+
+    private Texture getBackgroundTexture(String path) {
+        if (path == null || path.isEmpty()) return null;
+        boolean isNight = "MALAM".equals(timeOfDay);
+        if (isNight) {
+            if (path.contains("kamar_kost")) return kamarKostMalamTexture;
+            if (path.contains("kost_outside")) return kostOutsideMalamTexture;
+            if (path.contains("jalan_raya")) return jalanRayaMalamTexture;
+            if (path.contains("kedai_kopi")) return kedaiKopiMalamTexture;
+            if (path.contains("jalan_setapak")) return jalanSetapakMalamTexture;
+            if (path.contains("jalan_danau")) return jalanDanauMalamTexture;
+            if (path.contains("luar_ruang_studio")) return luarRuangStudioMalamTexture;
+            if (path.contains("dalam_studio")) return dalamStudioMalamTexture;
+            if (path.contains("ukm_seni")) return ukmSeniMalamTexture;
+            if (path.contains("taman_kampus")) return tamanKampusMalamTexture;
+            if (path.contains("kantin")) return kantinMalamTexture;
+            if (path.contains("lorong_1")) return lorong1MalamTexture;
+            if (path.contains("lorong_2")) return lorong2MalamTexture;
+            if (path.contains("ukm_musik")) return studioMalamTexture;
+        }
+        if (path.contains("kamar_kost")) return kamarKostTexture;
+        if (path.contains("kost_outside")) return kostOutsideTexture;
+        if (path.contains("jalan_raya")) return jalanRayaTexture;
+        if (path.contains("kedai_kopi")) return kedaiKopiTexture;
+        if (path.contains("jalan_setapak")) return jalanSetapakTexture;
+        if (path.contains("jalan_danau")) return jalanDanauTexture;
+        if (path.contains("luar_ruang_studio")) return luarRuangStudioTexture;
+        if (path.contains("dalam_studio")) return dalamStudioTexture;
+        if (path.contains("ukm_seni")) return ukmSeniTexture;
+        if (path.contains("taman_kampus")) return tamanKampusTexture;
+        if (path.contains("kantin")) return kantinTexture;
+        if (path.contains("lorong_1")) return lorong1Texture;
+        if (path.contains("lorong_2")) return lorong2Texture;
+        if (path.contains("ukm_musik")) return studioTexture;
+        return null;
     }
 
     @Override
@@ -827,204 +992,423 @@ public class GameplayScreen implements Screen, InputProcessor {
         // ── Dim background ──────────────────────────────────────────
         Gdx.gl.glEnable(GL20.GL_BLEND);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(0f, 0f, 0f, 0.65f);
+        shapeRenderer.setColor(0f, 0f, 0f, 0.70f);
         shapeRenderer.rect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 
-        // ── Phone body ───────────────────────────────────────────────
+        // ── Phone Body Dimensions ───────────────────────────────────
         float phoneW = 360f;
         float phoneH = 620f;
         float px = (VIRTUAL_WIDTH - phoneW) / 2f;
         float py = (VIRTUAL_HEIGHT - phoneH) / 2f;
 
-        // Outer shell
-        shapeRenderer.setColor(0.15f, 0.15f, 0.18f, 1f);
-        shapeRenderer.rect(px - 6, py - 6, phoneW + 12, phoneH + 12);
-        // Screen
-        shapeRenderer.setColor(0.08f, 0.09f, 0.12f, 1f);
+        // Phone Shell (Dark Slate)
+        shapeRenderer.setColor(0.11f, 0.13f, 0.16f, 1f);
+        shapeRenderer.rect(px - 7, py - 7, phoneW + 14, phoneH + 14);
+        
+        // Screen Background (WhatsApp Dark Mode: #111B21)
+        shapeRenderer.setColor(0.07f, 0.11f, 0.13f, 1f); // #111B21
         shapeRenderer.rect(px, py, phoneW, phoneH);
 
+        // WA Theme Colors
+        Color waTopBar = new Color(0.12f, 0.17f, 0.20f, 1f);       // #1F2C34
+        Color waDarkCard = new Color(0.09f, 0.13f, 0.16f, 1f);     // #162127
+        Color waAccentGreen = new Color(0.00f, 0.66f, 0.52f, 1f);  // #00A884
+        Color bubbleIncoming = new Color(0.13f, 0.17f, 0.20f, 1f); // #202C33
+        Color bubbleOutgoing = new Color(0.00f, 0.36f, 0.29f, 1f); // #005C4B
+        Color choiceBtnColor = new Color(0.12f, 0.22f, 0.26f, 1f);
+
+        float cardH = 62f;
+        float startCardY = py + phoneH - 85f - cardH;
+
         if (phoneScreen == 0) {
-            // ── App List Screen ─────────────────────────────────────
-            // Status bar
-            shapeRenderer.setColor(0.05f, 0.05f, 0.08f, 1f);
+            // ── WhatsApp Contact List Screen ─────────────────────────
+            // Top Status Bar
+            shapeRenderer.setColor(0.05f, 0.08f, 0.10f, 1f);
             shapeRenderer.rect(px, py + phoneH - 30, phoneW, 30);
 
-            // Chat app icon row
-            shapeRenderer.setColor(0.18f, 0.55f, 0.34f, 1f); // green chat icon
-            shapeRenderer.rect(px + 20, py + phoneH - 110, 70, 70);
+            // WhatsApp App Header Bar
+            shapeRenderer.setColor(waTopBar);
+            shapeRenderer.rect(px, py + phoneH - 75, phoneW, 45);
+
+            // 5 Contact Card Backgrounds
+            for (int i = 0; i < 5; i++) {
+                float cardY = startCardY - i * (cardH + 6f);
+                shapeRenderer.setColor(waDarkCard);
+                shapeRenderer.rect(px + 8, cardY, phoneW - 16, cardH);
+            }
+
+            // Unread badge for Clara if not replied today
+            if (gameState.claraChatDayReplied != gameState.day) {
+                float cardYClara = startCardY - 1 * (cardH + 6f);
+                shapeRenderer.setColor(waAccentGreen);
+                shapeRenderer.rect(px + phoneW - 35, cardYClara + 20, 20, 20);
+            }
 
         } else {
-            // ── Group Chat Screen ───────────────────────────────────
-            // Top bar
-            shapeRenderer.setColor(0.12f, 0.35f, 0.22f, 1f);
+            // ── Chat Screen (Group / Personal) ──────────────────────
+            // WhatsApp Header Bar (#1F2C34)
+            shapeRenderer.setColor(waTopBar);
             shapeRenderer.rect(px, py + phoneH - 55, phoneW, 55);
 
-            // Back arrow area
-            shapeRenderer.setColor(0.08f, 0.25f, 0.16f, 1f);
-            shapeRenderer.rect(px + 5, py + phoneH - 45, 40, 35);
+            // Back Arrow box
+            shapeRenderer.setColor(0.08f, 0.12f, 0.15f, 1f);
+            shapeRenderer.rect(px + 4, py + phoneH - 46, 36, 38);
 
-            // Chat bubbles area (dark)
-            shapeRenderer.setColor(0.10f, 0.11f, 0.14f, 1f);
+            // Chat Wallpaper Background (#0B141A)
+            shapeRenderer.setColor(0.04f, 0.08f, 0.10f, 1f);
             shapeRenderer.rect(px, py + 55, phoneW, phoneH - 110);
 
-            // Bottom bar
-            shapeRenderer.setColor(0.05f, 0.05f, 0.08f, 1f);
+            // Bottom Input Bar
+            shapeRenderer.setColor(0.07f, 0.11f, 0.13f, 1f);
             shapeRenderer.rect(px, py, phoneW, 55);
 
-            // Draw chat bubbles (left = others, right = Raksha)
-            // Messages:
-            // Bagas (left):  "Oi Echo Summer! Latihan bareng yuk di studio hari ini?"
-            // Rania  (left): "Siapp! Aku udah di sana dari tadi hehe"
-            // Clara  (left): "Otw! 5 menit lagi nyampe~"
-            // Sherly (left): "Jangan lupa partiturnnya dibawa ya, gue yang periksa"
-            // Raksha (right — only if chatRead): "Siap semua! Otw studio sekarang!"
-
-            // bubble colors
-            Color bubbleOther = new Color(0.18f, 0.20f, 0.25f, 1f);
-            Color bubbleRaksha = new Color(0.10f, 0.38f, 0.22f, 1f);
-
-            // Draw bubbles stacked from top to bottom (oldest at top, newest at bottom)
-            float bW = phoneW - 80f;
-            float bH = 44f;
-            float bPad = 10f;
+            float bW = phoneW - 40f;
             float topY = py + phoneH - 55f - 15f;
-            float bY1 = topY - bH;
-            float bY2 = bY1 - (bH + bPad);
-            float bY3 = bY2 - (bH + bPad);
-            float bY4 = bY3 - (bH + bPad);
-            float bY5 = bY4 - (bH + bPad);
 
-            if (isCh2) {
-                // Bubble 1 (Bagas - Oldest at top)
-                shapeRenderer.setColor(new Color(0.20f, 0.25f, 0.38f, 1f));
-                shapeRenderer.rect(px + 14, bY1, bW, bH);
+            if (phoneScreen == 1) {
+                // Group Chat Bubbles
+                float bH = 44f;
+                float bPad = 10f;
+                float bY1 = topY - bH;
+                float bY2 = bY1 - (bH + bPad);
+                float bY3 = bY2 - (bH + bPad);
+                float bY4 = bY3 - (bH + bPad);
+                float bY5 = bY4 - (bH + bPad);
 
-                // Bubble 2 (Rania)
-                shapeRenderer.setColor(bubbleOther);
-                shapeRenderer.rect(px + 14, bY2, bW, bH);
+                if (isCh2) {
+                    shapeRenderer.setColor(bubbleIncoming);
+                    shapeRenderer.rect(px + 14, bY1, bW, bH);
+                    shapeRenderer.rect(px + 14, bY2, bW, bH);
+                    shapeRenderer.rect(px + 14, bY3, bW, bH);
+                    shapeRenderer.rect(px + 14, bY4, bW, bH);
 
-                // Bubble 3 (Clara)
-                shapeRenderer.setColor(bubbleOther);
-                shapeRenderer.rect(px + 14, bY3, bW, bH);
-
-                // Bubble 4 (Sherly)
-                shapeRenderer.setColor(bubbleOther);
-                shapeRenderer.rect(px + 14, bY4, bW, bH);
-
-                // Bubble 5 (Raksha reply - Newest at bottom)
-                if (gameState.ch2ChatRead) {
-                    shapeRenderer.setColor(bubbleRaksha);
-                    shapeRenderer.rect(px + 14, bY5, bW, bH);
+                    if (gameState.ch2ChatRead) {
+                        shapeRenderer.setColor(bubbleOutgoing);
+                        shapeRenderer.rect(px + 14, bY5, bW, bH);
+                    } else {
+                        shapeRenderer.setColor(waAccentGreen);
+                        shapeRenderer.rect(px + phoneW / 2f - 70f, py + 10, 140f, 38f);
+                    }
+                } else {
+                    shapeRenderer.setColor(bubbleIncoming);
+                    shapeRenderer.rect(px + 14, bY1, bW, bH);
                 }
 
-                // "Read" button if not yet read
-                if (!gameState.ch2ChatRead) {
-                    shapeRenderer.setColor(0.20f, 0.60f, 0.35f, 1f);
-                    shapeRenderer.rect(px + phoneW / 2f - 70f, py + 10, 140f, 38f);
+            } else if (phoneScreen == 2) {
+                // Clara Bucin Chat
+                shapeRenderer.setColor(bubbleIncoming);
+                shapeRenderer.rect(px + 14, topY - 110f, bW, 110f);
+
+                if (gameState.claraChatDayReplied == gameState.day) {
+                    shapeRenderer.setColor(bubbleOutgoing);
+                    shapeRenderer.rect(px + 14, topY - 180f, bW, 60f);
+
+                    shapeRenderer.setColor(bubbleIncoming);
+                    shapeRenderer.rect(px + 14, topY - 290f, bW, 95f);
+                } else {
+                    // Choice Option Cards
+                    shapeRenderer.setColor(choiceBtnColor);
+                    shapeRenderer.rect(px + 12, py + 70, phoneW - 24, 48f);
+                    shapeRenderer.rect(px + 12, py + 15, phoneW - 24, 48f);
                 }
-            } else {
-                // Non-ch2: show generic group chat placeholder
-                shapeRenderer.setColor(bubbleOther);
-                shapeRenderer.rect(px + 14, bY1, bW, bH);
+
+            } else if (phoneScreen == 3) {
+                // Bagas Chat
+                shapeRenderer.setColor(bubbleIncoming);
+                shapeRenderer.rect(px + 14, topY - 70f, bW, 70f);
+                shapeRenderer.setColor(bubbleOutgoing);
+                shapeRenderer.rect(px + 14, topY - 150f, bW, 70f);
+
+            } else if (phoneScreen == 4) {
+                // Sherly Chat
+                shapeRenderer.setColor(bubbleIncoming);
+                shapeRenderer.rect(px + 14, topY - 80f, bW, 80f);
+                shapeRenderer.setColor(bubbleOutgoing);
+                shapeRenderer.rect(px + 14, topY - 160f, bW, 70f);
+
+            } else if (phoneScreen == 5) {
+                // Rania Chat
+                shapeRenderer.setColor(bubbleIncoming);
+                shapeRenderer.rect(px + 14, topY - 80f, bW, 80f);
+                shapeRenderer.setColor(bubbleOutgoing);
+                shapeRenderer.rect(px + 14, topY - 160f, bW, 70f);
             }
         }
 
         shapeRenderer.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
 
-        // ── Text Layer ───────────────────────────────────────────────
+        // ── Text & Image Layer ───────────────────────────────────────
         batch.begin();
-        choiceFont.getData().setScale(0.85f);
 
         if (phoneScreen == 0) {
-            // Status bar time
+            // Status bar
+            choiceFont.getData().setScale(0.80f);
             choiceFont.setColor(Color.WHITE);
-            choiceFont.draw(batch, "10:45", px + phoneW - 60, py + phoneH - 8);
+            choiceFont.draw(batch, "10:45", px + phoneW - 55, py + phoneH - 8);
 
-            // App label
-            choiceFont.setColor(new Color(0.2f, 1f, 0.5f, 1f));
-            choiceFont.draw(batch, "Chat", px + 24, py + phoneH - 50);
+            // WhatsApp App Title
+            choiceFont.getData().setScale(0.95f);
+            choiceFont.setColor(waAccentGreen);
+            choiceFont.draw(batch, "WhatsApp", px + 15, py + phoneH - 44);
 
+            // Row 0: Group Chat
+            float y0 = startCardY;
+            if (pfpGroup != null) batch.draw(pfpGroup, px + 16, y0 + 8, 46f, 46f);
+            choiceFont.getData().setScale(0.78f);
             choiceFont.setColor(Color.WHITE);
-            choiceFont.draw(batch, "Echo Summer", px + 100, py + phoneH - 65);
-            choiceFont.getData().setScale(0.7f);
+            choiceFont.draw(batch, "Echo Summer (Grup)", px + 70, y0 + 52);
+            choiceFont.getData().setScale(0.58f);
             choiceFont.setColor(Color.LIGHT_GRAY);
-            choiceFont.draw(batch, "Bagas, Rania, Clara, Sherly, Raksha", px + 100, py + phoneH - 85);
+            choiceFont.draw(batch, "Bagas, Rania, Clara, Sherly, Raksha", px + 70, y0 + 26);
+            choiceFont.draw(batch, "10:42", px + phoneW - 48, y0 + 52);
 
-            choiceFont.getData().setScale(0.75f);
+            // Row 1: Clara Chat (Bucin)
+            float y1 = startCardY - 1 * (cardH + 6f);
+            if (pfpClara != null) batch.draw(pfpClara, px + 16, y1 + 8, 46f, 46f);
+            choiceFont.getData().setScale(0.78f);
+            choiceFont.setColor(new Color(1f, 0.75f, 0.85f, 1f));
+            choiceFont.draw(batch, "Clara ❤️", px + 70, y1 + 52);
+            choiceFont.getData().setScale(0.58f);
+            choiceFont.setColor(Color.WHITE);
+            choiceFont.draw(batch, truncateSingleLine(getClaraDailyChatMsg(), 28), px + 70, y1 + 26);
             choiceFont.setColor(Color.LIGHT_GRAY);
-            choiceFont.draw(batch, "[TAB / ESC] Tutup   [ENTER] Buka Chat", px + 10, py + 20);
+            choiceFont.draw(batch, "10:44", px + phoneW - 48, y1 + 52);
+
+            if (gameState.claraChatDayReplied != gameState.day) {
+                choiceFont.getData().setScale(0.60f);
+                choiceFont.setColor(Color.WHITE);
+                choiceFont.draw(batch, "1", px + phoneW - 29, y1 + 35);
+            }
+
+            // Row 2: Bagas Chat
+            float y2 = startCardY - 2 * (cardH + 6f);
+            if (pfpBagas != null) batch.draw(pfpBagas, px + 16, y2 + 8, 46f, 46f);
+            choiceFont.getData().setScale(0.78f);
+            choiceFont.setColor(new Color(0.6f, 0.8f, 1f, 1f));
+            choiceFont.draw(batch, "Bagas 🥁", px + 70, y2 + 52);
+            choiceFont.getData().setScale(0.58f);
+            choiceFont.setColor(Color.LIGHT_GRAY);
+            choiceFont.draw(batch, "Gas pol latihan drum berikutnya!", px + 70, y2 + 26);
+            choiceFont.draw(batch, "09:30", px + phoneW - 48, y2 + 52);
+
+            // Row 3: Sherly Chat
+            float y3 = startCardY - 3 * (cardH + 6f);
+            if (pfpSherly != null) batch.draw(pfpSherly, px + 16, y3 + 8, 46f, 46f);
+            choiceFont.getData().setScale(0.78f);
+            choiceFont.setColor(new Color(0.85f, 0.6f, 1f, 1f));
+            choiceFont.draw(batch, "Sherly 📋", px + 70, y3 + 52);
+            choiceFont.getData().setScale(0.58f);
+            choiceFont.setColor(Color.LIGHT_GRAY);
+            choiceFont.draw(batch, "Jadwal promo sosmed & studio beres", px + 70, y3 + 26);
+            choiceFont.draw(batch, "Kemarin", px + phoneW - 55, y3 + 52);
+
+            // Row 4: Rania Chat
+            float y4 = startCardY - 4 * (cardH + 6f);
+            if (pfpRania != null) batch.draw(pfpRania, px + 16, y4 + 8, 46f, 46f);
+            choiceFont.getData().setScale(0.78f);
+            choiceFont.setColor(new Color(1f, 0.6f, 0.75f, 1f));
+            choiceFont.draw(batch, "Rania 🎨", px + 70, y4 + 52);
+            choiceFont.getData().setScale(0.58f);
+            choiceFont.setColor(Color.LIGHT_GRAY);
+            choiceFont.draw(batch, "Partitur & ilustrasi lukisan baru", px + 70, y4 + 26);
+            choiceFont.draw(batch, "Kemarin", px + phoneW - 55, y4 + 52);
+
+            choiceFont.getData().setScale(0.66f);
+            choiceFont.setColor(Color.LIGHT_GRAY);
+            choiceFont.draw(batch, "[Klik Kontak] Buka Chat   [TAB/ESC] Tutup", px + 12, py + 18);
 
         } else {
-            // Top bar title
-            choiceFont.getData().setScale(0.9f);
+            // ── Single & Group Chat View Headers & Messages ──
+            Texture currentPfp = pfpGroup;
+            String headerTitle = "Echo Summer";
+            String headerSub = "Bagas, Rania, Clara, Sherly, Raksha";
+
+            if (phoneScreen == 2) {
+                currentPfp = pfpClara;
+                headerTitle = "Clara ❤️";
+                headerSub = "Online - Bucin Mode 💕";
+            } else if (phoneScreen == 3) {
+                currentPfp = pfpBagas;
+                headerTitle = "Bagas 🥁";
+                headerSub = "Online - Drummer Echo Summer";
+            } else if (phoneScreen == 4) {
+                currentPfp = pfpSherly;
+                headerTitle = "Sherly 📋";
+                headerSub = "Online - Manager Echo Summer";
+            } else if (phoneScreen == 5) {
+                currentPfp = pfpRania;
+                headerTitle = "Rania 🎨";
+                headerSub = "Online - Bassist Echo Summer";
+            }
+
+            // Top Header: Back Arrow & PFP
+            choiceFont.getData().setScale(0.85f);
             choiceFont.setColor(Color.WHITE);
-            choiceFont.draw(batch, "< Echo Summer", px + 10, py + phoneH - 18);
-            choiceFont.getData().setScale(0.65f);
-            choiceFont.setColor(new Color(0.6f, 1f, 0.6f, 1f));
-            choiceFont.draw(batch, "Bagas, Rania, Clara, Sherly, Raksha", px + 14, py + phoneH - 38);
+            choiceFont.draw(batch, "<", px + 14, py + phoneH - 18);
 
-            float bW = phoneW - 80f;
-            float bH = 44f;
-            float bPad = 10f;
+            if (currentPfp != null) {
+                batch.draw(currentPfp, px + 44, py + phoneH - 48, 38f, 38f);
+            }
+
+            choiceFont.getData().setScale(0.80f);
+            choiceFont.setColor(Color.WHITE);
+            choiceFont.draw(batch, headerTitle, px + 90, py + phoneH - 14);
+            choiceFont.getData().setScale(0.58f);
+            choiceFont.setColor(waAccentGreen);
+            choiceFont.draw(batch, headerSub, px + 90, py + phoneH - 34);
+
             float topY = py + phoneH - 55f - 15f;
-            float bY1 = topY - bH;
-            float bY2 = bY1 - (bH + bPad);
-            float bY3 = bY2 - (bH + bPad);
-            float bY4 = bY3 - (bH + bPad);
-            float bY5 = bY4 - (bH + bPad);
-            choiceFont.getData().setScale(0.72f);
 
-            if (isCh2) {
-                // Bubble 1 (Bagas - Oldest at top)
-                choiceFont.setColor(new Color(0.5f, 0.75f, 1f, 1f));
-                choiceFont.draw(batch, "Bagas:", px + 20, bY1 + bH - 6);
-                choiceFont.setColor(Color.WHITE);
-                choiceFont.draw(batch, "Oi! Latihan bareng yuk di studio hari ini?", px + 20, bY1 + bH - 24);
+            if (phoneScreen == 1) {
+                float bW = phoneW - 80f;
+                float bH = 44f;
+                float bPad = 10f;
+                float bY1 = topY - bH;
+                float bY2 = bY1 - (bH + bPad);
+                float bY3 = bY2 - (bH + bPad);
+                float bY4 = bY3 - (bH + bPad);
+                float bY5 = bY4 - (bH + bPad);
 
-                // Bubble 2 (Rania)
-                choiceFont.setColor(new Color(1f, 0.75f, 0.85f, 1f));
-                choiceFont.draw(batch, "Rania:", px + 20, bY2 + bH - 6);
-                choiceFont.setColor(Color.WHITE);
-                choiceFont.draw(batch, "Siapp! Aku udah di sana dari tadi hehe", px + 20, bY2 + bH - 24);
-
-                // Bubble 3 (Clara)
-                choiceFont.setColor(new Color(1f, 0.9f, 0.5f, 1f));
-                choiceFont.draw(batch, "Clara:", px + 20, bY3 + bH - 6);
-                choiceFont.setColor(Color.WHITE);
-                choiceFont.draw(batch, "Otw! 5 menit lagi nyampe~", px + 20, bY3 + bH - 24);
-
-                // Bubble 4 (Sherly)
-                choiceFont.setColor(new Color(0.85f, 0.5f, 1f, 1f));
-                choiceFont.draw(batch, "Sherly:", px + 20, bY4 + bH - 6);
-                choiceFont.setColor(Color.WHITE);
-                choiceFont.draw(batch, "Jangan lupa partitur nya, gue periksa!", px + 20, bY4 + bH - 24);
-
-                // Bubble 5 (Raksha reply - Newest at bottom)
-                if (gameState.ch2ChatRead) {
-                    choiceFont.setColor(new Color(0.5f, 1f, 0.6f, 1f));
-                    choiceFont.draw(batch, "Raksha (kamu):", px + 20, bY5 + bH - 6);
+                choiceFont.getData().setScale(0.72f);
+                if (isCh2) {
+                    choiceFont.setColor(new Color(0.5f, 0.75f, 1f, 1f));
+                    choiceFont.draw(batch, "Bagas:", px + 20, bY1 + bH - 6);
                     choiceFont.setColor(Color.WHITE);
-                    choiceFont.draw(batch, "Siap semua! Otw studio sekarang!", px + 20, bY5 + bH - 24);
+                    choiceFont.draw(batch, "Oi! Latihan bareng yuk di studio hari ini?", px + 20, bY1 + bH - 24);
 
-                    choiceFont.getData().setScale(0.65f);
-                    choiceFont.setColor(Color.LIGHT_GRAY);
-                    choiceFont.draw(batch, "[TAB/ESC] Tutup  -  Pergi ke Studio!", px + 14, py + 20);
+                    choiceFont.setColor(new Color(1f, 0.75f, 0.85f, 1f));
+                    choiceFont.draw(batch, "Rania:", px + 20, bY2 + bH - 6);
+                    choiceFont.setColor(Color.WHITE);
+                    choiceFont.draw(batch, "Siapp! Aku udah di sana dari tadi hehe", px + 20, bY2 + bH - 24);
+
+                    choiceFont.setColor(new Color(1f, 0.9f, 0.5f, 1f));
+                    choiceFont.draw(batch, "Clara:", px + 20, bY3 + bH - 6);
+                    choiceFont.setColor(Color.WHITE);
+                    choiceFont.draw(batch, "Otw! 5 menit lagi nyampe~", px + 20, bY3 + bH - 24);
+
+                    choiceFont.setColor(new Color(0.85f, 0.5f, 1f, 1f));
+                    choiceFont.draw(batch, "Sherly:", px + 20, bY4 + bH - 6);
+                    choiceFont.setColor(Color.WHITE);
+                    choiceFont.draw(batch, "Jangan lupa partitur nya, gue periksa!", px + 20, bY4 + bH - 24);
+
+                    if (gameState.ch2ChatRead) {
+                        choiceFont.setColor(new Color(0.5f, 1f, 0.6f, 1f));
+                        choiceFont.draw(batch, "Raksha (kamu):", px + 20, bY5 + bH - 6);
+                        choiceFont.setColor(Color.WHITE);
+                        choiceFont.draw(batch, "Siap semua! Otw studio sekarang! ✓✓", px + 20, bY5 + bH - 24);
+
+                        choiceFont.getData().setScale(0.62f);
+                        choiceFont.setColor(Color.LIGHT_GRAY);
+                        choiceFont.draw(batch, "[Top Bar / ESC] Kembali ke Kontak", px + 14, py + 20);
+                    } else {
+                        choiceFont.getData().setScale(0.78f);
+                        choiceFont.setColor(Color.WHITE);
+                        choiceFont.draw(batch, "Balas & Ke Studio!", px + phoneW / 2f - 70f, py + 38);
+                        choiceFont.getData().setScale(0.62f);
+                        choiceFont.setColor(Color.LIGHT_GRAY);
+                        choiceFont.draw(batch, "[ENTER] Balas   [TAB/ESC] Tutup", px + 14, py + 14);
+                    }
                 } else {
-                    choiceFont.getData().setScale(0.78f);
-                    choiceFont.setColor(Color.WHITE);
-                    choiceFont.draw(batch, "Balas & Ke Studio!", px + phoneW / 2f - 70f, py + 38);
-                    choiceFont.getData().setScale(0.65f);
                     choiceFont.setColor(Color.LIGHT_GRAY);
-                    choiceFont.draw(batch, "[ENTER] Balas   [TAB/ESC] Tutup", px + 14, py + 14);
+                    choiceFont.draw(batch, "Bagas: Gas latihan minggu depan!", px + 20, bY1 + bH - 14);
+                    choiceFont.getData().setScale(0.62f);
+                    choiceFont.setColor(Color.LIGHT_GRAY);
+                    choiceFont.draw(batch, "[Top Bar / ESC] Kembali", px + 14, py + 14);
                 }
-            } else {
-                // Generic casual messages for other chapters
+
+            } else if (phoneScreen == 2) {
+                // Clara Bucin Chat
+                choiceFont.getData().setScale(0.68f);
+                choiceFont.setColor(new Color(1f, 0.8f, 0.9f, 1f));
+                choiceFont.draw(batch, "Clara ❤️:", px + 20, topY - 8);
+                choiceFont.setColor(Color.WHITE);
+                choiceFont.draw(batch, getClaraDailyChatMsg(), px + 20, topY - 28, phoneW - 50f, Align.left, true);
+
+                if (gameState.claraChatDayReplied == gameState.day) {
+                    // Raksha Reply
+                    choiceFont.setColor(new Color(0.5f, 1f, 0.6f, 1f));
+                    choiceFont.draw(batch, "Raksha (kamu):", px + 20, topY - 125f);
+                    choiceFont.setColor(Color.WHITE);
+                    String replyText = (gameState.claraChatChoiceIndex == 0) ? getClaraReplyOptionA() : getClaraReplyOptionB();
+                    choiceFont.draw(batch, replyText + "  ✓✓", px + 20, topY - 145f, phoneW - 50f, Align.left, true);
+
+                    // Clara Reaction
+                    choiceFont.setColor(new Color(1f, 0.8f, 0.9f, 1f));
+                    choiceFont.draw(batch, "Clara ❤️:", px + 20, topY - 200f);
+                    choiceFont.setColor(Color.WHITE);
+                    choiceFont.draw(batch, "Aaaa Raka beneran bikin salting bangeett! I love you so much ❤️❤️❤️\n(Hubungan Clara +2)", px + 20, topY - 220f, phoneW - 50f, Align.left, true);
+
+                    choiceFont.getData().setScale(0.62f);
+                    choiceFont.setColor(Color.LIGHT_GRAY);
+                    choiceFont.draw(batch, "[Top Bar / ESC] Kembali ke Kontak", px + 14, py + 20);
+
+                } else {
+                    // Options
+                    choiceFont.getData().setScale(0.65f);
+                    choiceFont.setColor(waAccentGreen);
+                    choiceFont.draw(batch, "Pilih Balasan Chat Clara:", px + 14, py + 130);
+
+                    choiceFont.getData().setScale(0.60f);
+                    choiceFont.setColor(Color.WHITE);
+                    choiceFont.draw(batch, getClaraReplyOptionA(), px + 18, py + 102, phoneW - 36f, Align.left, true);
+                    choiceFont.draw(batch, getClaraReplyOptionB(), px + 18, py + 47, phoneW - 36f, Align.left, true);
+
+                    choiceFont.getData().setScale(0.62f);
+                    choiceFont.setColor(Color.LIGHT_GRAY);
+                    choiceFont.draw(batch, "[Klik Tombol] Balas Chat Clara ❤️", px + 14, py + 12);
+                }
+
+            } else if (phoneScreen == 3) {
+                // Bagas Chat
+                choiceFont.getData().setScale(0.68f);
+                choiceFont.setColor(new Color(0.6f, 0.8f, 1f, 1f));
+                choiceFont.draw(batch, "Bagas:", px + 20, topY - 8);
+                choiceFont.setColor(Color.WHITE);
+                choiceFont.draw(batch, "Oi Raka! Tempo drum kemarin makin rapi kan? Gas pol latihan berikutnya bro!", px + 20, topY - 28, phoneW - 50f, Align.left, true);
+
+                choiceFont.setColor(new Color(0.5f, 1f, 0.6f, 1f));
+                choiceFont.draw(batch, "Raksha (kamu):", px + 20, topY - 88f);
+                choiceFont.setColor(Color.WHITE);
+                choiceFont.draw(batch, "Mantap Gas! Tempo lu udah solid banget, siap bantai panggung!  ✓✓", px + 20, topY - 108f, phoneW - 50f, Align.left, true);
+
+                choiceFont.getData().setScale(0.62f);
                 choiceFont.setColor(Color.LIGHT_GRAY);
-                choiceFont.draw(batch, "Bagas: Gas latihan minggu depan!", px + 20, bY1 + bH - 14);
-                choiceFont.getData().setScale(0.65f);
+                choiceFont.draw(batch, "[Top Bar / ESC] Kembali ke Kontak", px + 14, py + 20);
+
+            } else if (phoneScreen == 4) {
+                // Sherly Chat
+                choiceFont.getData().setScale(0.68f);
+                choiceFont.setColor(new Color(0.85f, 0.6f, 1f, 1f));
+                choiceFont.draw(batch, "Sherly:", px + 20, topY - 8);
+                choiceFont.setColor(Color.WHITE);
+                choiceFont.draw(batch, "Raka, jadwal promo sosmed dan kelengkapan studio Echo Summer beres. Jangan telat latihan!", px + 20, topY - 28, phoneW - 50f, Align.left, true);
+
+                choiceFont.setColor(new Color(0.5f, 1f, 0.6f, 1f));
+                choiceFont.draw(batch, "Raksha (kamu):", px + 20, topY - 98f);
+                choiceFont.setColor(Color.WHITE);
+                choiceFont.draw(batch, "Siap Mbak Manager! Dipastikan datang tepat waktu.  ✓✓", px + 20, topY - 118f, phoneW - 50f, Align.left, true);
+
+                choiceFont.getData().setScale(0.62f);
                 choiceFont.setColor(Color.LIGHT_GRAY);
-                choiceFont.draw(batch, "[TAB/ESC] Tutup", px + 14, py + 14);
+                choiceFont.draw(batch, "[Top Bar / ESC] Kembali ke Kontak", px + 14, py + 20);
+
+            } else if (phoneScreen == 5) {
+                // Rania Chat
+                choiceFont.getData().setScale(0.68f);
+                choiceFont.setColor(new Color(1f, 0.6f, 0.75f, 1f));
+                choiceFont.draw(batch, "Rania:", px + 20, topY - 8);
+                choiceFont.setColor(Color.WHITE);
+                choiceFont.draw(batch, "Raksha, aku nemu lukisan & partitur bagus banget kemarin... Nanti aku tunjukin ya!", px + 20, topY - 28, phoneW - 50f, Align.left, true);
+
+                choiceFont.setColor(new Color(0.5f, 1f, 0.6f, 1f));
+                choiceFont.draw(batch, "Raksha (kamu):", px + 20, topY - 98f);
+                choiceFont.setColor(Color.WHITE);
+                choiceFont.draw(batch, "Keren Ran! Gak sabar mau liat hasil lukisan kamu.  ✓✓", px + 20, topY - 118f, phoneW - 50f, Align.left, true);
+
+                choiceFont.getData().setScale(0.62f);
+                choiceFont.setColor(Color.LIGHT_GRAY);
+                choiceFont.draw(batch, "[Top Bar / ESC] Kembali ke Kontak", px + 14, py + 20);
             }
         }
 
@@ -1072,9 +1456,9 @@ public class GameplayScreen implements Screen, InputProcessor {
         nearClara = (currentZone == ExplorationZone.DALAM_STUDIO || currentZone == ExplorationZone.UKM_MUSIK || currentZone == ExplorationZone.KAMPUS) && (currentZone == ExplorationZone.DALAM_STUDIO ? rakshaX >= 150f : rakshaX >= 700f);
         nearKostGate = (currentZone == ExplorationZone.KOST_OUTSIDE) && rakshaX >= 480f && rakshaX <= 750f;
         
-        nearRania = (currentZone == ExplorationZone.STUDIO_SENI) && Math.abs(rakshaX - raniaX) < 150f;
-        nearSherly = (currentZone == ExplorationZone.KEDAI_KOPI) && Math.abs(rakshaX - sherlyX) < 150f;
-        nearBagas = (currentZone == ExplorationZone.KANTIN) && Math.abs(rakshaX - bagasX) < 150f;
+        nearRania  = canSeeRania()  && (currentZone == ExplorationZone.STUDIO_SENI) && Math.abs(rakshaX - raniaX) < 150f;
+        nearSherly = canSeeSherly() && (currentZone == ExplorationZone.KEDAI_KOPI)  && Math.abs(rakshaX - sherlyX) < 150f;
+        nearBagas  = canSeeBagas()  && (currentZone == ExplorationZone.KANTIN)      && Math.abs(rakshaX - bagasX) < 150f;
         nearJalanTanah = (currentZone == ExplorationZone.JALAN_SETAPAK) && rakshaX >= 440f && rakshaX <= 590f;
         nearStudioDoor = (currentZone == ExplorationZone.LUAR_RUANG_STUDIO) && rakshaX >= 630f && rakshaX <= 800f;
         nearStudioExit = (currentZone == ExplorationZone.DALAM_STUDIO) && rakshaX >= 60f && rakshaX <= 250f;
@@ -1227,14 +1611,22 @@ public class GameplayScreen implements Screen, InputProcessor {
                 break;
         }
 
-        // Key E ONLY: NPC Conversations & Bed Interactions
-        if (Gdx.input.isKeyJustPressed(Input.Keys.E)) {
+        if (interactionCooldown > 0f) {
+            interactionCooldown -= delta;
+        }
+
+        // Key E or SPACE: NPC Conversations & Bed Interactions
+        if ((Gdx.input.isKeyJustPressed(Input.Keys.E) || Gdx.input.isKeyJustPressed(Input.Keys.SPACE)) && interactionCooldown <= 0f) {
             if (nearBed) {
-                String blockNode = getPendingMandatoryBlockNode();
-                if (blockNode != null) {
-                    loadNode(blockNode);
+                if ("CHAPTER_4".equals(gameState.chapter)) {
+                    loadNode("BLOCK_CH4_QUEST");
                 } else {
-                    loadNode("CH1_KOST_CHOICES");
+                    String blockNode = getPendingMandatoryBlockNode();
+                    if (blockNode != null) {
+                        loadNode(blockNode);
+                    } else {
+                        loadNode("CH1_KOST_CHOICES");
+                    }
                 }
             } else if (nearClara) {
                 String blockNode = getPendingMandatoryBlockNode();
@@ -1242,8 +1634,10 @@ public class GameplayScreen implements Screen, InputProcessor {
                     loadNode(blockNode);
                 } else if (isPracticeDay(gameState.day) && currentZone == ExplorationZone.DALAM_STUDIO) {
                     loadNode("BAND_PRACTICE_START");
-                } else {
+                } else if (gameState.freeDayEventDone) {
                     loadNode("CH1_KAMPUS_CHOICES");
+                } else {
+                    loadNode("FREE_DATE_CLARA_START");
                 }
             } else if (nearSherly) {
                 if (gameState.day26EventDone) {
@@ -1431,25 +1825,8 @@ public class GameplayScreen implements Screen, InputProcessor {
         SpriteBatch batch = game.getBatch();
         batch.begin();
 
-        // 1. Draw full-screen background matching current zone
-        Texture zoneBg;
-        switch (currentZone) {
-            case KOST:          zoneBg = kamarKostTexture; break;
-            case KOST_OUTSIDE:  zoneBg = kostOutsideTexture; break;
-            case WARKOP:        zoneBg = jalanRayaTexture; break;
-            case TAMAN_KAMPUS:  zoneBg = tamanKampusTexture; break;
-            case KANTIN:        zoneBg = kantinTexture; break;
-            case LORONG_1:      zoneBg = lorong1Texture; break;
-            case LORONG_2:      zoneBg = lorong2Texture; break;
-            case KEDAI_KOPI:    zoneBg = kedaiKopiTexture; break;
-            case STUDIO_SENI:   zoneBg = ukmSeniTexture; break;
-            case JALAN_SETAPAK: zoneBg = jalanSetapakTexture; break;
-            case JALAN_DANAU:   zoneBg = jalanDanauTexture; break;
-            case LUAR_RUANG_STUDIO: zoneBg = luarRuangStudioTexture; break;
-            case DALAM_STUDIO:  zoneBg = dalamStudioTexture; break;
-            case UKM_MUSIK:     zoneBg = studioTexture; break;
-            default:            zoneBg = studioTexture; break; // KAMPUS
-        }
+        // 1. Draw full-screen background matching current zone and time of day
+        Texture zoneBg = getZoneTexture(currentZone);
         if (zoneBg != null) {
             batch.setColor(Color.WHITE);
             batch.draw(zoneBg, 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
@@ -1502,7 +1879,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         float feetY = claraDrawY + (789f * npcScale); // approx 143f
 
         // Draw Rania: Studio Seni on Day 24, OR in DALAM_STUDIO on practice days (days 20, 18, 15, 12)
-        if (raniaIdleAnimation != null) {
+        if (raniaIdleAnimation != null && canSeeRania()) {
             if (currentZone == ExplorationZone.DALAM_STUDIO && practiceDay) {
                 TextureRegion raniaFrame = raniaIdleAnimation.getKeyFrame(claraAnimationTime, true);
                 float drawW = raniaFrame.getRegionWidth() * npcScale;
@@ -1517,7 +1894,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         }
 
         // Draw Sherly: Kedai Kopi OR in DALAM_STUDIO on practice days
-        if (sherlyIdleAnimation != null) {
+        if (sherlyIdleAnimation != null && canSeeSherly()) {
             if (currentZone == ExplorationZone.DALAM_STUDIO && practiceDay) {
                 TextureRegion sherlyFrame = sherlyIdleAnimation.getKeyFrame(claraAnimationTime, true);
                 float drawW = sherlyFrame.getRegionWidth() * npcScale;
@@ -1532,7 +1909,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         }
 
         // Draw Bagas: Kantin OR in DALAM_STUDIO on practice days
-        if (bagasIdleAnimation != null) {
+        if (bagasIdleAnimation != null && canSeeBagas()) {
             if (currentZone == ExplorationZone.DALAM_STUDIO && practiceDay) {
                 TextureRegion bagasFrame = bagasIdleAnimation.getKeyFrame(claraAnimationTime, true);
                 float drawW = bagasFrame.getRegionWidth() * npcScale;
@@ -1751,14 +2128,13 @@ public class GameplayScreen implements Screen, InputProcessor {
         float boxX = 40f;
         float boxY = 30f;
         float boxW = VIRTUAL_WIDTH - 80f;
-        float boxH = 150f;
-        
-        // Dynamically adjust box height for long text or multiple paragraphs
-        String speechContent = typedText;
-        if (speechContent != null && (speechContent.length() > 120 || speechContent.contains("\n"))) {
-            boxH = 220f;
-        }
 
+        // Dynamically compute exact required height from actual text measurement so no text is ever clipped or cut off
+        GlyphLayout textLayout = new GlyphLayout(dialogueFont, currentDialogueText != null ? currentDialogueText : "", Color.WHITE, boxW - 80f, Align.left, true);
+        float reqH = textLayout.height + 70f;
+        float boxH = Math.max(160f, Math.min(310f, reqH));
+        
+        String speechContent = typedText;
         String speakerName = currentSpeakerName;
 
         // Main box parallelogram points (slanted backward \ \)
@@ -1859,7 +2235,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         String nodeId = currentNode.nodeId;
 
         // Skip rendering character models during full illustrations/prologue/endings
-        if (nodeId.startsWith("PROLOG_") || nodeId.startsWith("CREDITS_") || nodeId.equals("GAME_OVER")) {
+        if (nodeId.startsWith("PROLOG_") || nodeId.startsWith("END_") || nodeId.startsWith("CREDITS_") || nodeId.equals("GAME_OVER")) {
             return;
         }
 
@@ -1950,11 +2326,11 @@ public class GameplayScreen implements Screen, InputProcessor {
 
         Choice[] choices = currentNode.choices;
         int n = choices.length;
-        float btnW = 600f;
-        float btnH = 50f;
+        float btnW = 880f;
+        float btnH = 54f;
         float gap = 15f;
         float totalH = n * btnH + (n - 1) * gap;
-        float startY = (height - totalH) / 2f;
+        float startY = (height - totalH) / 2f + 60f;
         float startX = (width - btnW) / 2f;
 
         // Map mouse to virtual coordinates
@@ -2006,15 +2382,22 @@ public class GameplayScreen implements Screen, InputProcessor {
             boolean isHovered = mouseX >= startX && mouseX <= startX + btnW && mouseY >= btnY && mouseY <= btnY + btnH;
 
             choiceFont.setColor(Color.WHITE);
-            float textY = btnY + btnH / 2f + 7f;
-            
-            if (isHovered) {
-                choiceFont.getData().setScale(1.1f);
-                choiceFont.draw(batch, choice.text, startX, textY, btnW, Align.center, false);
-                choiceFont.getData().setScale(1.0f);
-            } else {
-                choiceFont.draw(batch, choice.text, startX, textY, btnW, Align.center, false);
+            choiceFont.getData().setScale(1.0f);
+
+            GlyphLayout layout = new GlyphLayout(choiceFont, choice.text);
+            float maxUsableW = btnW - 40f;
+            float targetScale = 1.0f;
+            if (layout.width > maxUsableW) {
+                targetScale = maxUsableW / layout.width;
             }
+            if (isHovered) {
+                targetScale *= 1.05f;
+            }
+
+            choiceFont.getData().setScale(targetScale);
+            float textY = btnY + (btnH + layout.height * targetScale) / 2f;
+            choiceFont.draw(batch, choice.text, startX, textY, btnW, Align.center, false);
+            choiceFont.getData().setScale(1.0f);
         }
         batch.end();
     }
@@ -2045,12 +2428,16 @@ public class GameplayScreen implements Screen, InputProcessor {
                 currentNode = null;
                 isDialogueFinished = false;
                 state = GameplayState.EXPLORATION_STATE;
+                interactionCooldown = 0.35f;
+                updateTimeOfDay();
             } else if (nextId.equals("GAME_OVER")) {
                 game.setScreen(new MainMenuScreen(game));
             } else if (nextId.equals("EXPLORATION_MODE")) {
                 currentNode = null;
                 isDialogueFinished = false;
                 state = GameplayState.EXPLORATION_STATE;
+                interactionCooldown = 0.35f;
+                updateTimeOfDay();
                 return;
             } else if (nextId.equals("START_GUITAR_RHYTHM_GAME")) {
                 rhythmFromGuitarPractice = true;
@@ -2128,11 +2515,30 @@ public class GameplayScreen implements Screen, InputProcessor {
         rhythmGame.draw(shapeRenderer, game.getBatch(), font, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
     }
 
+    private float autoSaveToastTimer = 0f;
+
+    private void triggerAutoSave() {
+        if (gameState == null) return;
+        gameState.currentZone = currentZone.name();
+        gameState.rakshaX = rakshaX;
+        gameState.gameplayState = (state != null ? state : GameplayState.EXPLORATION_STATE).name();
+        SaveManager.saveGame(gameState, "autosave.dat");
+        autoSaveToastTimer = 2.5f;
+    }
+
     // ==========================================
     // SHARED CALENDAR / HUD
     // ==========================================
     private void drawHUD(SpriteBatch batch, ShapeRenderer shape) {
         if (gameState == null) return;
+
+        // Hide HUD badge during ending cutscenes, credits, or concert sequence!
+        if (currentNode != null) {
+            String nodeId = currentNode.nodeId;
+            if (nodeId.startsWith("END_") || nodeId.startsWith("CREDITS_") || nodeId.equals("GAME_OVER") || nodeId.startsWith("CH4_")) {
+                return;
+            }
+        }
 
         float badgeW = 220f;
         float badgeH = 80f;
@@ -2177,6 +2583,12 @@ public class GameplayScreen implements Screen, InputProcessor {
             font.draw(batch, "[TAB] \uD83D\uDCF1 Buka HP", 20f, 50f);
             font.draw(batch, "[ESC] \u23F8 Pause Menu", 20f, 20f);
         }
+
+        if (autoSaveToastTimer > 0) {
+            font.setColor(Color.LIME);
+            font.draw(batch, "💾 Auto Saved", 20f, VIRTUAL_HEIGHT - 30f);
+        }
+
         batch.end();
     }
 
@@ -2217,11 +2629,17 @@ public class GameplayScreen implements Screen, InputProcessor {
             if (state != GameplayState.PAUSED_STATE) {
                 previousState = state;
                 state = GameplayState.PAUSED_STATE;
+                if (previousState == GameplayState.RHYTHM_STATE) {
+                    rhythmGame.pause();
+                }
                 if (rhythmMusic != null && rhythmMusic.isPlaying()) {
                     rhythmMusic.pause();
                 }
             } else {
                 state = (previousState != null && previousState != GameplayState.PAUSED_STATE) ? previousState : GameplayState.EXPLORATION_STATE;
+                if (state == GameplayState.RHYTHM_STATE) {
+                    rhythmGame.resume();
+                }
             }
             return true;
         }
@@ -2245,8 +2663,17 @@ public class GameplayScreen implements Screen, InputProcessor {
         }
 
         if (state == GameplayState.DIALOGUE_STATE) {
+            if (currentNode != null && (currentNode.nodeId.startsWith("CREDITS_") || currentNode.nodeId.equals("GAME_OVER"))) {
+                if (keycode == Input.Keys.SPACE || keycode == Input.Keys.ENTER) {
+                    if (creditsScrollY >= VIRTUAL_HEIGHT / 2f) {
+                        game.setScreen(new MainMenuScreen(game));
+                        return true;
+                    }
+                    return true;
+                }
+            }
             if (currentNode != null && currentNode.choices != null) return false;
-            if (keycode == Input.Keys.SPACE || keycode == Input.Keys.ENTER) {
+            if (keycode == Input.Keys.SPACE || keycode == Input.Keys.ENTER || keycode == Input.Keys.E) {
                 advanceDialogue();
                 return true;
             }
@@ -2319,8 +2746,8 @@ public class GameplayScreen implements Screen, InputProcessor {
                 // Resume
                 if (rx >= bx && rx <= bx + btnW && ry >= my + 350 && ry <= my + 350 + btnH) {
                     state = previousState;
-                    if (state == GameplayState.RHYTHM_STATE && rhythmMusic != null && rhythmGame.isActive()) {
-                        rhythmMusic.play();
+                    if (state == GameplayState.RHYTHM_STATE) {
+                        rhythmGame.resume();
                     }
                     return true;
                 }
@@ -2382,22 +2809,70 @@ public class GameplayScreen implements Screen, InputProcessor {
             }
 
             if (phoneScreen == 0) {
-                // Click chat app icon / item row
-                if (rx >= px + 10 && rx <= px + phoneW - 10 && ry >= py + phoneH - 120 && ry <= py + phoneH - 30) {
+                float cardH = 62f;
+                float startCardY = py + phoneH - 85f - cardH;
+                // Row 0: Group Chat Echo Summer
+                float y0 = startCardY;
+                if (rx >= px + 8 && rx <= px + phoneW - 8 && ry >= y0 && ry <= y0 + cardH) {
                     phoneScreen = 1;
                     return true;
                 }
-            } else if (phoneScreen == 1) {
-                // Back button / top bar
+                // Row 1: Clara Chat (Bucin)
+                float y1 = startCardY - 1 * (cardH + 6f);
+                if (rx >= px + 8 && rx <= px + phoneW - 8 && ry >= y1 && ry <= y1 + cardH) {
+                    phoneScreen = 2;
+                    return true;
+                }
+                // Row 2: Bagas Chat
+                float y2 = startCardY - 2 * (cardH + 6f);
+                if (rx >= px + 8 && rx <= px + phoneW - 8 && ry >= y2 && ry <= y2 + cardH) {
+                    phoneScreen = 3;
+                    return true;
+                }
+                // Row 3: Sherly Chat
+                float y3 = startCardY - 3 * (cardH + 6f);
+                if (rx >= px + 8 && rx <= px + phoneW - 8 && ry >= y3 && ry <= y3 + cardH) {
+                    phoneScreen = 4;
+                    return true;
+                }
+                // Row 4: Rania Chat
+                float y4 = startCardY - 4 * (cardH + 6f);
+                if (rx >= px + 8 && rx <= px + phoneW - 8 && ry >= y4 && ry <= y4 + cardH) {
+                    phoneScreen = 5;
+                    return true;
+                }
+            } else {
+                // Top bar / back button in any single or group chat
                 if (ry >= py + phoneH - 55) {
                     phoneScreen = 0;
                     return true;
                 }
-                // Reply button in Ch2
-                if (("CHAPTER_2".equals(gameState.chapter) || (gameState.day <= 20 && gameState.day >= 10)) && !gameState.ch2ChatRead) {
-                    if (rx >= px + phoneW / 2f - 70f && rx <= px + phoneW / 2f + 70f && ry >= py + 10 && ry <= py + 48) {
-                        gameState.ch2ChatRead = true;
-                        return true;
+
+                if (phoneScreen == 1) {
+                    // Reply button in Ch2
+                    if (("CHAPTER_2".equals(gameState.chapter) || (gameState.day <= 20 && gameState.day >= 10)) && !gameState.ch2ChatRead) {
+                        if (rx >= px + phoneW / 2f - 70f && rx <= px + phoneW / 2f + 70f && ry >= py + 10 && ry <= py + 48) {
+                            gameState.ch2ChatRead = true;
+                            return true;
+                        }
+                    }
+                } else if (phoneScreen == 2) {
+                    // Clara chat reply options
+                    if (gameState.claraChatDayReplied != gameState.day) {
+                        // Option A: ry from py + 70 to py + 118
+                        if (rx >= px + 12 && rx <= px + phoneW - 12 && ry >= py + 70 && ry <= py + 118) {
+                            gameState.claraChatDayReplied = gameState.day;
+                            gameState.claraChatChoiceIndex = 0;
+                            gameState.claraRel += 2;
+                            return true;
+                        }
+                        // Option B: ry from py + 15 to py + 63
+                        if (rx >= px + 12 && rx <= px + phoneW - 12 && ry >= py + 15 && ry <= py + 63) {
+                            gameState.claraChatDayReplied = gameState.day;
+                            gameState.claraChatChoiceIndex = 1;
+                            gameState.claraRel += 2;
+                            return true;
+                        }
                     }
                 }
             }
@@ -2408,11 +2883,11 @@ public class GameplayScreen implements Screen, InputProcessor {
             if (currentNode != null && currentNode.choices != null) {
                 Choice[] choices = currentNode.choices;
                 int n = choices.length;
-                float btnW = 600f;
-                float btnH = 50f;
+                float btnW = 880f;
+                float btnH = 54f;
                 float gap = 15f;
                 float totalH = n * btnH + (n - 1) * gap;
-                float startY = (VIRTUAL_HEIGHT - totalH) / 2f;
+                float startY = (VIRTUAL_HEIGHT - totalH) / 2f + 60f;
                 float startX = (VIRTUAL_WIDTH - btnW) / 2f;
 
                 for (int i = 0; i < n; i++) {
@@ -2434,8 +2909,14 @@ public class GameplayScreen implements Screen, InputProcessor {
                         if (choice.action != null) {
                             choice.action.execute(gameState);
                         }
-                        if (choice.nextNodeId != null && choice.nextNodeId.equals("CH1_DAY_NEXT") && getPendingMandatoryBlockNode() != null) {
-                            loadNode(getPendingMandatoryBlockNode());
+                        if (choice.nextNodeId != null && choice.nextNodeId.equals("CH1_DAY_NEXT")) {
+                            if (!"MALAM".equals(timeOfDay)) {
+                                loadNode("BLOCK_SLEEP_DAYTIME");
+                            } else if (getPendingMandatoryBlockNode() != null) {
+                                loadNode(getPendingMandatoryBlockNode());
+                            } else {
+                                loadNode(choice.nextNodeId);
+                            }
                         } else {
                             loadNode(choice.nextNodeId);
                         }
@@ -2515,6 +2996,31 @@ public class GameplayScreen implements Screen, InputProcessor {
         if (luarRuangStudioTexture != null) luarRuangStudioTexture.dispose();
         if (dalamStudioTexture != null) dalamStudioTexture.dispose();
         if (ukmSeniTexture != null) ukmSeniTexture.dispose();
+        if (tamanKampusTexture != null) tamanKampusTexture.dispose();
+        if (kantinTexture != null) kantinTexture.dispose();
+        if (lorong1Texture != null) lorong1Texture.dispose();
+        if (lorong2Texture != null) lorong2Texture.dispose();
+
+        if (kamarKostMalamTexture != null) kamarKostMalamTexture.dispose();
+        if (kostOutsideMalamTexture != null) kostOutsideMalamTexture.dispose();
+        if (jalanRayaMalamTexture != null) jalanRayaMalamTexture.dispose();
+        if (kedaiKopiMalamTexture != null) kedaiKopiMalamTexture.dispose();
+        if (jalanSetapakMalamTexture != null) jalanSetapakMalamTexture.dispose();
+        if (jalanDanauMalamTexture != null) jalanDanauMalamTexture.dispose();
+        if (luarRuangStudioMalamTexture != null) luarRuangStudioMalamTexture.dispose();
+        if (dalamStudioMalamTexture != null) dalamStudioMalamTexture.dispose();
+        if (ukmSeniMalamTexture != null) ukmSeniMalamTexture.dispose();
+        if (tamanKampusMalamTexture != null) tamanKampusMalamTexture.dispose();
+        if (kantinMalamTexture != null) kantinMalamTexture.dispose();
+        if (lorong1MalamTexture != null) lorong1MalamTexture.dispose();
+        if (lorong2MalamTexture != null) lorong2MalamTexture.dispose();
+        if (studioMalamTexture != null) studioMalamTexture.dispose();
+
+        if (pfpGroup != null) pfpGroup.dispose();
+        if (pfpClara != null) pfpClara.dispose();
+        if (pfpBagas != null) pfpBagas.dispose();
+        if (pfpSherly != null) pfpSherly.dispose();
+        if (pfpRania != null) pfpRania.dispose();
 
         if (prologTextures != null) {
             for (Texture tex : prologTextures) {
@@ -2562,6 +3068,60 @@ public class GameplayScreen implements Screen, InputProcessor {
         }
     }
 
+    private boolean canSeeBagas() {
+        if (gameState == null) return false;
+        if (!"CHAPTER_1".equals(gameState.chapter)) return true;
+        return gameState.day28EventDone || gameState.day <= 28;
+    }
+
+    private boolean canSeeSherly() {
+        if (gameState == null) return false;
+        if (!"CHAPTER_1".equals(gameState.chapter)) return true;
+        return gameState.day26EventDone || gameState.day <= 26;
+    }
+
+    private boolean canSeeRania() {
+        if (gameState == null) return false;
+        if (!"CHAPTER_1".equals(gameState.chapter)) return true;
+        return gameState.day24EventDone || gameState.day <= 24;
+    }
+
+    private String truncateSingleLine(String text, int maxChars) {
+        if (text == null) return "";
+        String single = text.replace("\n", " ").trim();
+        if (single.length() > maxChars) {
+            return single.substring(0, maxChars) + "...";
+        }
+        return single;
+    }
+
+    private String getClaraDailyChatMsg() {
+        int d = gameState != null ? gameState.day : 30;
+        if (d == 30) return "Rakaaa! Hari ini semangat ya latihannya~ Aku udah gak sabar pengen ketemu kamu lagi nanti sore! Jangan lupa sarapan ya sayangku~ ❤️";
+        if (d >= 28) return "Raka, kamu tahu gak? Setiap kali aku ngeliat kamu petik gitar, jantungku rasanya mau melompat keluar... Kenapa sih kamu harus seganteng itu? 🙈";
+        if (d >= 26) return "Rakaaa... Nanti malem telfonan yuk sebelum tidur? Aku mau denger suara kamu biar tidurnya makin nyenyak~ 😴💖";
+        if (d >= 24) return "Raka, makasih ya udah selalu sabar nemenin dan dukung aku... Aku bersyukur banget bisa ketemu cowok sehebat dan se-sweet kamu 🥺❤️";
+        return "Raka sayang! Selamat hari baru~ Ingat ya, hari ini harus selalu senyum karena ada aku yang mendoakan kamu dari jauh! Luv u! 😘";
+    }
+
+    private String getClaraReplyOptionA() {
+        int d = gameState != null ? gameState.day : 30;
+        if (d == 30) return "Semangat juga ya Ra! Gue kangen kamu ❤️";
+        if (d >= 28) return "Dan setiap denger lo nyanyi, dunia milik berdua 💕";
+        if (d >= 26) return "Pasti dong Ra, jam berapa pun telfon langsung gue angkat ❤️";
+        if (d >= 24) return "Kamu itu hadiah terindah dalam hidup gue ✨";
+        return "Luv u more Ra! Bikin makin semangat ngejalanin hari ❤️";
+    }
+
+    private String getClaraReplyOptionB() {
+        int d = gameState != null ? gameState.day : 30;
+        if (d == 30) return "Siap tuan putri, gue pasti sarapan nemenin kamu!";
+        if (d >= 28) return "Main gitar emang khusus cuma buat kamu kok 😉";
+        if (d >= 26) return "Nanti gue nyanyiin lagu pengantar tidur buat kamu 🥰";
+        if (d >= 24) return "Aku janji gak akan pernah ngelepasin kamu ❤️";
+        return "Senyum gue hari ini 100% khusus cuma buat kamu 🥰";
+    }
+
     private String getPendingMandatoryBlockNode() {
         if (gameState == null) return null;
         String ch = gameState.chapter;
@@ -2584,51 +3144,16 @@ public class GameplayScreen implements Screen, InputProcessor {
             if (!gameState.ch3AldoDone && currentZone != ExplorationZone.KEDAI_KOPI && currentZone != ExplorationZone.UKM_MUSIK) {
                 return "BLOCK_CH3_QUEST";
             }
-        } else if ("CHAPTER_4".equals(ch)) {
+        } else if ("CHAPTER_4".equals(ch) || d <= 0) {
+            if (currentZone != ExplorationZone.KANTIN) {
+                return "BLOCK_CH4_QUEST";
+            }
             return null;
         }
         return null;
     }
 
-    private Texture getBackgroundTexture(String bgPath) {
-        if (bgPath == null || bgPath.isEmpty()) return null;
-        if (backgroundMap.containsKey(bgPath)) {
-            return backgroundMap.get(bgPath);
-        }
-        try {
-            if (Gdx.files.internal(bgPath).exists()) {
-                Texture tex = new Texture(Gdx.files.internal(bgPath));
-                tex.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-                backgroundMap.put(bgPath, tex);
-                return tex;
-            }
-        } catch (Exception e) {
-            Gdx.app.error("GameplayScreen", "Failed to load background texture at " + bgPath + ": " + e.getMessage());
-        }
-        return null;
-    }
 
-    private Texture getZoneTexture(ExplorationZone zone) {
-        if (zone == null) return kamarKostTexture;
-        switch (zone) {
-            case KOST:              return kamarKostTexture;
-            case KOST_OUTSIDE:      return kostOutsideTexture;
-            case WARKOP:            return jalanRayaTexture;
-            case TAMAN_KAMPUS:      return tamanKampusTexture;
-            case KANTIN:            return kantinTexture;
-            case LORONG_1:          return lorong1Texture;
-            case LORONG_2:          return lorong2Texture;
-            case KEDAI_KOPI:        return kedaiKopiTexture;
-            case KAMPUS:            return studioTexture;
-            case STUDIO_SENI:       return ukmSeniTexture;
-            case JALAN_SETAPAK:     return jalanSetapakTexture;
-            case JALAN_DANAU:       return jalanDanauTexture;
-            case LUAR_RUANG_STUDIO: return luarRuangStudioTexture;
-            case DALAM_STUDIO:      return dalamStudioTexture;
-            case UKM_MUSIK:         return studioTexture;
-            default:                return kamarKostTexture;
-        }
-    }
 
     private void loadCreditsJson() {
         if (creditsLoaded) return;
@@ -2721,9 +3246,11 @@ public class GameplayScreen implements Screen, InputProcessor {
             curY -= 60f;
         }
 
-        // Skip Prompt
-        font.setColor(Color.ORANGE);
-        font.draw(batch, "[ SPACE / ENTER ] Tekan untuk kembali ke Menu Utama", 0f, 40f, VIRTUAL_WIDTH, Align.center, false);
+        // Skip Prompt - Only show when credits have scrolled halfway up the screen!
+        if (creditsScrollY >= VIRTUAL_HEIGHT / 2f) {
+            font.setColor(Color.ORANGE);
+            font.draw(batch, "[ SPACE / ENTER ] Tekan untuk kembali ke Menu Utama", 0f, 40f, VIRTUAL_WIDTH, Align.center, false);
+        }
 
         batch.end();
     }
@@ -2894,7 +3421,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         String nodeId = currentNode != null ? currentNode.nodeId : "";
 
         // Determine active right character first before evaluating speaker expression defaults
-        if (nodeId != null && (nodeId.startsWith("BLOCK_") || nodeId.startsWith("PHONE_") || currentBackground == kamarKostTexture || currentBackground == kostOutsideTexture)) {
+        if (nodeId != null && (nodeId.startsWith("BLOCK_") || nodeId.startsWith("PHONE_") || currentBackground == kamarKostTexture || currentBackground == kamarKostMalamTexture || currentBackground == kostOutsideTexture || currentBackground == kostOutsideMalamTexture)) {
             activeRightCharacter = "None";
         } else if ("Sherly".equalsIgnoreCase(speaker) || (nodeId != null && nodeId.contains("SHERLY"))) {
             activeRightCharacter = "Sherly";
@@ -3224,11 +3751,12 @@ public class GameplayScreen implements Screen, InputProcessor {
         if (gameState.day == 18) return "🎯 Objektif (Hari 18): Garap lagu bersama band (Di Ruang Studio).";
         if (gameState.day == 15) return "🎯 Objektif (Hari 15): Latihan intensif bersama band (Di Ruang Studio).";
         if (gameState.day == 12) return "🎯 Objektif (Hari 12): Gladi bersih bersama band (Di Ruang Studio).";
+        if (gameState.day == 10) return "🎯 Objektif (Hari 10): Pergi ke UKM Musik untuk menemui anak-anak.";
         if (gameState.day == 8) return "🎯 Objektif (Hari 8): Bubar band? (Di Kamar Kost).";
         if (gameState.day == 7) return "🎯 Objektif (Hari 7): Kabur (Temui Clara di Kampus).";
         if (gameState.day == 5) return "🎯 Objektif (Hari 5): Bukti Aldo terungkap (Di Kamar Kost).";
         if (gameState.day == 3) return "🎯 Objektif (Hari 3): Latihan terakhir (Di Kamar Kost).";
-        if (gameState.day == 1) return "🎯 Objektif (Hari 1): Echo Fest Panggung Festival! (Di Kamar Kost).";
+        if (gameState.day == 1) return "🎯 Objektif (Hari 1): Echo Fest Panggung Festival! (Menuju Panggung Kantin Kampus).";
         
         return "🎯 Objektif (Hari " + gameState.day + "): Latihan Gitar di Kamar Kost [E] / Cek HP [TAB].";
     }

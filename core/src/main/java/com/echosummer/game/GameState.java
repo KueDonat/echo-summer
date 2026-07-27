@@ -42,6 +42,9 @@ public class GameState {
     public boolean ch2CompositionDone = false;
     public boolean ch3AldoDone = false;
     public boolean ch2ChatRead = false;
+    public boolean freeDayEventDone = false;
+    public int claraChatDayReplied = -1;
+    public int claraChatChoiceIndex = 0;
 
     // Resuming state
     public String currentZone = "KOST";
@@ -74,6 +77,7 @@ public class GameState {
         ch2CompositionDone = false;
         ch3AldoDone = false;
         ch2ChatRead = false;
+        freeDayEventDone = false;
         currentZone = "KOST";
         rakshaX = 100f;
         gameplayState = "DIALOGUE_STATE";
@@ -106,6 +110,9 @@ public class GameState {
         sb.append("ch2CompositionDone=").append(ch2CompositionDone).append("\n");
         sb.append("ch3AldoDone=").append(ch3AldoDone).append("\n");
         sb.append("ch2ChatRead=").append(ch2ChatRead).append("\n");
+        sb.append("freeDayEventDone=").append(freeDayEventDone).append("\n");
+        sb.append("claraChatDayReplied=").append(claraChatDayReplied).append("\n");
+        sb.append("claraChatChoiceIndex=").append(claraChatChoiceIndex).append("\n");
         sb.append("currentZone=").append(currentZone).append("\n");
         sb.append("rakshaX=").append(rakshaX).append("\n");
         sb.append("gameplayState=").append(gameplayState).append("\n");
@@ -149,6 +156,9 @@ public class GameState {
             if (map.containsKey("ch2CompositionDone")) ch2CompositionDone = Boolean.parseBoolean(map.get("ch2CompositionDone"));
             if (map.containsKey("ch3AldoDone")) ch3AldoDone = Boolean.parseBoolean(map.get("ch3AldoDone"));
             if (map.containsKey("ch2ChatRead")) ch2ChatRead = Boolean.parseBoolean(map.get("ch2ChatRead"));
+            if (map.containsKey("freeDayEventDone")) freeDayEventDone = Boolean.parseBoolean(map.get("freeDayEventDone"));
+            if (map.containsKey("claraChatDayReplied")) claraChatDayReplied = Integer.parseInt(map.get("claraChatDayReplied"));
+            if (map.containsKey("claraChatChoiceIndex")) claraChatChoiceIndex = Integer.parseInt(map.get("claraChatChoiceIndex"));
             if (map.containsKey("currentZone")) currentZone = map.get("currentZone");
             if (map.containsKey("rakshaX")) rakshaX = Float.parseFloat(map.get("rakshaX"));
             if (map.containsKey("gameplayState")) gameplayState = map.get("gameplayState");

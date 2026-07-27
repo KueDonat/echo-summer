@@ -321,9 +321,178 @@
     "nextId": "START_GUITAR_RHYTHM_GAME"
   },
   {
+    "nodeId": "BLOCK_SLEEP_DAYTIME",
+    "speaker": "Raksha",
+    "text": "Hari masih sore. Gue harus menyelesaikan kegiatan hari ini dulu sebelum tidur! (Ajak Clara Date di Kampus / Latihan Gitar di Kost dulu)",
+    "expression": "biasa aja",
+    "background": "background/background_kamar_kost.png",
+    "nextId": "EXPLORATION_MODE"
+  },
+  {
+    "nodeId": "FREE_DATE_CLARA_START",
+    "speaker": "Clara",
+    "text": "Hai Raka! Hari ini gak ada jadwal latihan khusus. Mau luangin waktu bareng gue?",
+    "expression": "bahagia",
+    "background": "background/background_taman_kampus.png",
+    "choices": [
+      {
+        "text": "Jalan-jalan di Danau Kampus & Ngobrol Musik (+2 Hubungan Clara, +1 Keberanian)",
+        "nextNodeId": "FREE_DATE_CLARA_LAKE",
+        "action": {
+          "claraRel_add": 2,
+          "confidence_add": 1
+        }
+      },
+      {
+        "text": "Nongkrong di Kedai Kopi sambil bahas lirik (+2 Hubungan Clara, +1 Kreativitas)",
+        "nextNodeId": "FREE_DATE_CLARA_COFFEE",
+        "action": {
+          "claraRel_add": 2,
+          "creativity_add": 1
+        }
+      },
+      {
+        "text": "Duduk di Taman Kampus sambil cerita kenangan (+2 Hubungan Clara, +1 Kesabaran)",
+        "nextNodeId": "FREE_DATE_CLARA_PARK",
+        "action": {
+          "claraRel_add": 2,
+          "patience_add": 1
+        }
+      }
+    ]
+  },
+  {
+    "nodeId": "FREE_DATE_CLARA_LAKE",
+    "speaker": "Clara",
+    "text": "Angin di danau sore ini sejuk banget ya, Raka... Adem banget tempat ini buat ngobrolin ide lagu.",
+    "expression": "bahagia",
+    "background": "background/background_jalan_danau.png",
+    "nextId": "FREE_DATE_CLARA_LAKE_2"
+  },
+  {
+    "nodeId": "FREE_DATE_CLARA_LAKE_2",
+    "speaker": "Raksha",
+    "text": "Iya, Ra. Suasana kaya gini bikin kepala jernih buat nulis aransemen lagu baru.",
+    "expression": "bahagia",
+    "background": "background/background_jalan_danau.png",
+    "nextId": "FREE_DATE_CLARA_LAKE_3"
+  },
+  {
+    "nodeId": "FREE_DATE_CLARA_LAKE_3",
+    "speaker": "Clara",
+    "text": "Tau gak? Setiap kali di dekat kamu, aku ngerasa inspirasi musik aku langsung mengalir gitu aja...",
+    "expression": "malu",
+    "background": "background/background_jalan_danau.png",
+    "nextId": "FREE_DATE_CLARA_LAKE_4"
+  },
+  {
+    "nodeId": "FREE_DATE_CLARA_LAKE_4",
+    "speaker": "Raksha",
+    "text": "Bisa aja kamu, Ra. Tapi beneran, melodi yang kamu nyanyiin tadi manis banget.",
+    "expression": "bahagia",
+    "background": "background/background_jalan_danau.png",
+    "nextId": "FREE_DATE_CLARA_LAKE_5"
+  },
+  {
+    "nodeId": "FREE_DATE_CLARA_LAKE_5",
+    "speaker": "Clara",
+    "text": "Ih Raka! Bikin orang salting aja... Tapi makasih ya udah selalu nemenin aku ❤️ (Hubungan Clara +2, Keberanian +1)",
+    "expression": "malu",
+    "background": "background/background_jalan_danau.png",
+    "nextId": "FREE_DATE_CLARA_END"
+  },
+  {
+    "nodeId": "FREE_DATE_CLARA_COFFEE",
+    "speaker": "Clara",
+    "text": "Kopi latte hangat sama es krim vanilla... Perpaduan sempurna buat sore ini!",
+    "expression": "bahagia",
+    "background": "background/background_kedai_kopi.png",
+    "nextId": "FREE_DATE_CLARA_COFFEE_2"
+  },
+  {
+    "nodeId": "FREE_DATE_CLARA_COFFEE_2",
+    "speaker": "Raksha",
+    "text": "Manis banget ya, kayak yang lagi duduk di depan gue sekarang.",
+    "expression": "bahagia",
+    "background": "background/background_kedai_kopi.png",
+    "nextId": "FREE_DATE_CLARA_COFFEE_3"
+  },
+  {
+    "nodeId": "FREE_DATE_CLARA_COFFEE_3",
+    "speaker": "Clara",
+    "text": "Rakaaa! Pipiku bisa merah nih kalau kamu ngomong gitu terus!",
+    "expression": "malu",
+    "background": "background/background_kedai_kopi.png",
+    "nextId": "FREE_DATE_CLARA_COFFEE_4"
+  },
+  {
+    "nodeId": "FREE_DATE_CLARA_COFFEE_4",
+    "speaker": "Raksha",
+    "text": "Bercanda, Ra. Tapi beneran, lirik lagu buatan kamu itu nyampe banget ke hati.",
+    "expression": "bahagia",
+    "background": "background/background_kedai_kopi.png",
+    "nextId": "FREE_DATE_CLARA_COFFEE_5"
+  },
+  {
+    "nodeId": "FREE_DATE_CLARA_COFFEE_5",
+    "speaker": "Clara",
+    "text": "Itu karena liriknya aku tulis sambil ngebayangin kamu tahu... 🥰 (Hubungan Clara +2, Kreativitas +1)",
+    "expression": "malu",
+    "background": "background/background_kedai_kopi.png",
+    "nextId": "FREE_DATE_CLARA_END"
+  },
+  {
+    "nodeId": "FREE_DATE_CLARA_PARK",
+    "speaker": "Clara",
+    "text": "Duduk di bawah pohon rindang begini bikin betah... Rasanya waktu berjalan lambat ya.",
+    "expression": "bahagia",
+    "background": "background/background_taman_kampus.png",
+    "nextId": "FREE_DATE_CLARA_PARK_2"
+  },
+  {
+    "nodeId": "FREE_DATE_CLARA_PARK_2",
+    "speaker": "Raksha",
+    "text": "Iya, Ra. Kadang kita butuh momen tenang kaya gini di tengah padatnya jadwal latihan.",
+    "expression": "bahagia",
+    "background": "background/background_taman_kampus.png",
+    "nextId": "FREE_DATE_CLARA_PARK_3"
+  },
+  {
+    "nodeId": "FREE_DATE_CLARA_PARK_3",
+    "speaker": "Clara",
+    "text": "Momen tenang ini makin berharga karena aku lewati bareng kamu, Raka.",
+    "expression": "bahagia",
+    "background": "background/background_taman_kampus.png",
+    "nextId": "FREE_DATE_CLARA_PARK_4"
+  },
+  {
+    "nodeId": "FREE_DATE_CLARA_PARK_4",
+    "speaker": "Raksha",
+    "text": "Gue juga seneng bisa selalu ada di samping lo, Clara.",
+    "expression": "bahagia",
+    "background": "background/background_taman_kampus.png",
+    "nextId": "FREE_DATE_CLARA_PARK_5"
+  },
+  {
+    "nodeId": "FREE_DATE_CLARA_PARK_5",
+    "speaker": "Clara",
+    "text": "Tetap di samping aku terus ya, Raka... Jangan pernah pergi. ❤️ (Hubungan Clara +2, Kesabaran +1)",
+    "expression": "malu",
+    "background": "background/background_taman_kampus.png",
+    "nextId": "FREE_DATE_CLARA_END"
+  },
+  {
+    "nodeId": "FREE_DATE_CLARA_END",
+    "speaker": "Raksha",
+    "text": "Hari mulai malam... Clara pamit pulang duluan. Gue harus kembali ke kamar Kost dan tidur di kasur.",
+    "expression": "bahagia",
+    "background": "background/background_taman_kampus.png",
+    "nextId": "EXPLORATION_MODE"
+  },
+  {
     "nodeId": "CH1_PRACTICE_END",
     "speaker": "Raksha",
-    "text": "Selesai latihan gitar! Rasanya makin mantap.",
+    "text": "Selesai latihan gitar! Rasanya makin mantap. Hari mulai malam... Gue harus kembali ke kamar Kost dan tidur di kasur.",
     "expression": "bahagia",
     "background": "background/background_kamar_kost.png",
     "nextId": "EXPLORATION_MODE"
@@ -930,31 +1099,32 @@
   },
   {
     "nodeId": "CH3_START",
-    "speaker": "",
-    "text": "Tenang... tapi terasa ada sesuatu yang ganjil. Gue harus ke Kafe Kampus nemuin anak-anak!",
+    "speaker": "Raksha",
+    "text": "Suasana kampus terasa berbeda hari ini... Ada bisik-bisik kurang mengenakkan di sepanjang jalan. Gue harus segera ke Ruang UKM Musik buat nemuin anak-anak Echo Summer.",
+    "expression": "cemas",
     "background": "background/background_kamar_kost.png",
     "nextId": "CH3_DAY_LOOP"
   },
   {
     "nodeId": "CH3_DAY_LOOP",
     "speaker": "",
-    "text": "H-10 sebelum festival. Tujuan: Pergi ke Kafe Kampus / UKM Musik!",
+    "text": "Menjelang Festival Musik (H-10). Tujuan: Pergi ke Ruang UKM Musik untuk menemui seluruh anggota band!",
     "background": "background/background_kamar_kost.png",
     "nextId": "EXPLORATION_MODE"
   },
   {
     "nodeId": "CH3_ALDO_1",
     "speaker": "",
-    "text": "Pagi harinya di Kafe Kampus, Sherly menghampiri gue dengan wajah tegang.\n\nSherly: \"Raksha. Lihat ini.\"\n\nSherly menunjukkan ponsel. Postingan di akun InstaBand kampus:\n'APAKAH GITARIS TOXIC KEMBALI MENGHANCURKAN BAND?'",
-    "background": "background/background_kedai_kopi.png",
+    "text": "Di dalam Ruang UKM Musik, Sherly menghampiriku dengan raut wajah panik. Dia menyodorkan ponselnya yang menampilkan unggahan rumor anonim di sosmed kampus:\n\n'APAKAH GITARIS TOXIC KEMBALI MENGHANCURKAN BAND BARUNYA?'",
+    "background": "background/background_ukm_musik.png",
     "nextId": "CH3_RUMOR_CHOICE"
   },
   {
     "nodeId": "CH3_RUMOR_CHOICE",
     "speaker": "Raksha",
-    "text": "Bagaimana merespon rumor jahat tersebut?",
+    "text": "Melihat rumor busuk buatan Aldo itu, pikiranku mendadak kacau. Apa yang harus aku lakukan?",
     "expression": "cemas",
-    "background": "background/background_kedai_kopi.png",
+    "background": "background/background_ukm_musik.png",
     "choices": [
       {
         "text": "Lari dari ruangan (-2 Mental, -2 Hubungan Semua)",
@@ -985,46 +1155,46 @@
   {
     "nodeId": "CH3_RUMOR_RUN",
     "speaker": "Raksha",
-    "text": "Aku... aku tidak kuat lagi melihat ini...",
+    "text": "Gue gak tahan lagi... Dada gue sesak. Maafin gue semuanya, gue butuh waktu sendiri...",
     "expression": "sedih",
-    "background": "background/background_kedai_kopi.png",
+    "background": "background/background_ukm_musik.png",
     "nextId": "CH3_BREAKUP_8"
   },
   {
     "nodeId": "CH3_RUMOR_PATIENCE",
     "speaker": "Raksha",
-    "text": "Aku coba menenangkan diri. Kita tidak boleh terpancing.",
+    "text": "Kita gak boleh terpancing. Aldo sengaja nyebar rumor fitnah ini biar mental kita drop sebelum tampil.",
     "expression": "biasa aja",
-    "background": "background/background_kedai_kopi.png",
+    "background": "background/background_ukm_musik.png",
     "nextId": "CH3_BREAKUP_8"
   },
   {
     "nodeId": "CH3_RUMOR_SHERLY",
     "speaker": "Raksha",
-    "text": "Sherly, bisakah kamu tolong cari tahu siapa pemilik akun anonim itu?",
+    "text": "Sherly, tolong bantu gue telusuri siapa yang nyebar postingan ini. Gue yakin ada keterlibatan Aldo di balik ini.",
     "expression": "biasa aja",
-    "background": "background/background_kedai_kopi.png",
+    "background": "background/background_ukm_musik.png",
     "nextId": "CH3_BREAKUP_8"
   },
   {
     "nodeId": "CH3_BREAKUP_8",
     "speaker": "",
-    "text": "Semua personel berkumpul di Ruang Latihan. Raksha datang dengan wajah dingin.\n\nRaksha: \"Kita bubarkan band.\"",
+    "text": "Terpukul oleh rumor masa lalu yang membayanginya, Raksha merasa bersalah dan takut membebani teman-temannya. Di Ruang Studio, dengan suara bergetar Raksha berkata, 'Gue gak mau bikin reputasi kalian hancur... Mungkin lebih baik gue mundur dari band.'",
     "background": "background/background_dalam_studio.png",
     "nextId": "CH3_BUS_7"
   },
   {
     "nodeId": "CH3_BUS_7",
     "speaker": "",
-    "text": "Hujan turun deras di halte bus. Raksha duduk sendirian menatap gerimis. Clara datang membawa payung...",
+    "text": "Hujan deras mengguyur kota. Raksha duduk terdiam di Halte Bus Jalan Raya, menatap rintik hujan dengan perasaan hampa. Tiba-tiba Clara datang membawa payung...",
     "background": "background/background_jalan_raya.png",
     "nextId": "CH3_BUS_CHOICE"
   },
   {
     "nodeId": "CH3_BUS_CHOICE",
-    "speaker": "Raksha",
-    "text": "Apakah Raksha menceritakan masalahnya?",
-    "expression": "sedih",
+    "speaker": "Clara",
+    "text": "Raka, jangan pernah menanggung beban itu sendirian. Ceritain ke aku... apa yang sebenarnya terjadi di masa lalu kamu?",
+    "expression": "cemas",
     "background": "background/background_jalan_raya.png",
     "choices": [
       {
@@ -1046,7 +1216,7 @@
   {
     "nodeId": "CH3_BUS_SIT_A",
     "speaker": "Raksha",
-    "text": "Waktu itu... pas di festival dulu. Gue sempet salah petik. Band gue kalah. Vokalis gue—Aldo—marah gede banget. Dia nuduh gue gitaris toxic... dan semua orang percaya gitu aja.",
+    "text": "Di festival tahun lalu, band lama gue kalah karena petikan gitar gue sempet salah... Aldo langsung nyalahin gue di depan semua orang dan ngecap gue 'gitaris toxic'. Sejak saat itu, gue selalu takut bakal ngecewain orang yang gue sayangi lagi...",
     "expression": "sedih",
     "background": "background/background_jalan_raya.png",
     "nextId": "CH3_BUS_SIT_B"
@@ -1054,7 +1224,7 @@
   {
     "nodeId": "CH3_BUS_SIT_B",
     "speaker": "Clara",
-    "text": "Itu bukan salah lu kok, Raksha. Raksha, lihat aku. Aku tahu kamu bisa. Karena aku dengar suaramu. Dan suaramu... itu indah. Tidak peduli apa kata orang lain.",
+    "text": "Itu bukan salah kamu, Raka! Kamu itu gitaris yang luar biasa. Suara musik kamu jujur dan penuh perasaan. Aku percaya sama kamu... kami semua percaya!",
     "expression": "bahagia",
     "background": "background/background_jalan_raya.png",
     "nextId": "CH3_BUS_SIT_C"
@@ -1062,7 +1232,7 @@
   {
     "nodeId": "CH3_BUS_SIT_C",
     "speaker": "Raksha",
-    "text": "(menangis) Gue... jujur gue takut Ra...",
+    "text": "Makasih ya, Ra... Makasih udah percaya sama gue di saat semua orang meragukan gue.",
     "expression": "sedih",
     "background": "background/background_jalan_raya.png",
     "nextId": "CH3_BUS_SIT_D"
@@ -1070,7 +1240,7 @@
   {
     "nodeId": "CH3_BUS_SIT_D",
     "speaker": "Clara",
-    "text": "Tenang, kita hadapi ini bareng-bareng.",
+    "text": "Sama-sama Raka. Sekarang yuk kita kembali ke studio. Teman-teman udah nungguin kita!",
     "expression": "bahagia",
     "background": "background/background_jalan_raya.png",
     "nextId": "CH3_ALDO_5"
@@ -1078,33 +1248,33 @@
   {
     "nodeId": "CH3_BUS_LEAVE",
     "speaker": "",
-    "text": "Raka diam menatap hujan. Keheningan malam menyelimuti halte bus...",
+    "text": "Di tengah derasnya rintik hujan, Clara tetap setia mendampingi Raksha hingga hatinya kembali tenang dan siap melangkah.",
     "background": "background/background_jalan_raya.png",
     "nextId": "CH3_ALDO_5"
   },
   {
     "nodeId": "CH3_ALDO_5",
     "speaker": "",
-    "text": "Raka kembali ke Ruang Latihan. Semua personel memandangnya.\n\nRaksha: \"Gue mau minta maaf. Gue... lagi belajar untuk gak kabur lagi dari masalah.\"",
+    "text": "Raksha dan Clara kembali ke Dalam Ruang Studio Musik. Bagas, Rania, dan Sherly tersenyum lega menyambut kedatangan mereka.\n\nRaksha: 'Gue minta maaf karena sempet ragu. Gue janji gak akan lari lagi dari masalah ini.'",
     "background": "background/background_dalam_studio.png",
     "nextId": "CH3_BIG_CHOICE"
   },
   {
     "nodeId": "CH3_BIG_CHOICE",
     "speaker": "Raksha",
-    "text": "PILIHAN BESAR:",
+    "text": "Bagaimana fokus utama Raksha menghadapi sisa waktu menuju Festival?",
     "expression": "biasa aja",
     "background": "background/background_dalam_studio.png",
     "choices": [
       {
-        "text": "Mengejar Clara - Fokus Hubungan (+3 Hubungan Clara)",
+        "text": "Fokus Kebersamaan Band (+3 Hubungan Clara)",
         "nextNodeId": "CH3_FOCUS_CLARA",
         "action": {
           "claraRel_add": 3
         }
       },
       {
-        "text": "Menyelesaikan masalah dengan band lama - Fokus Reputasi (-1 Hubungan Clara)",
+        "text": "Buktikan Kualitas Musik di Panggung (-1 Hubungan Clara)",
         "nextNodeId": "CH3_FOCUS_REPUTATION",
         "action": {
           "claraRel_add": -1
@@ -1115,7 +1285,7 @@
   {
     "nodeId": "CH3_FOCUS_CLARA",
     "speaker": "Raksha",
-    "text": "Gue gak peduli sama reputasi atau omongan orang. Yang penting gue punya kalian semua di sini.",
+    "text": "Gue gak peduli sama omongan sindiran orang lain. Yang paling berharga buat gue adalah hubungan dan kebersamaan kita di Echo Summer.",
     "expression": "bahagia",
     "background": "background/background_dalam_studio.png",
     "nextId": "CH3_FOCUS_CLARA_2"
@@ -1123,7 +1293,7 @@
   {
     "nodeId": "CH3_FOCUS_CLARA_2",
     "speaker": "Clara",
-    "text": "(tersenyum) Kita akan hadapi ini bersama.",
+    "text": "Dan kami akan selalu berdiri di samping kamu, Raka.",
     "expression": "bahagia",
     "background": "background/background_dalam_studio.png",
     "nextId": "CH3_PRACTICE_3"
@@ -1131,15 +1301,15 @@
   {
     "nodeId": "CH3_FOCUS_REPUTATION",
     "speaker": "Raksha",
-    "text": "Aku akan buktikan bahwa tuduhan Aldo itu salah di atas panggung!",
-    "expression": "biasa aja",
+    "text": "Gue bakal buktikan ke Aldo dan semua penonton di atas panggung bahwa Echo Summer bukan sekadar band biasa!",
+    "expression": "bahagia",
     "background": "background/background_dalam_studio.png",
     "nextId": "CH3_PRACTICE_3"
   },
   {
     "nodeId": "CH3_PRACTICE_3",
     "speaker": "",
-    "text": "Latihan terakhir selesai. Ketegangan mencair. Besok adalah hari puncak Echo Fest!",
+    "text": "Latihan terakhir selesai dengan penuh semangat. Semua keraguan telah sirna. Besok adalah hari H Festival Musik Echo Fest!",
     "background": "background/background_dalam_studio.png",
     "action": {
       "chapter": "CHAPTER_4",
