@@ -2865,18 +2865,24 @@ public class GameplayScreen implements Screen, InputProcessor {
     private void renderDialogueHistoryStack() {
         if (!isDialogueHistoryActive) return;
 
-        float cardW = 1000f;
-        float cardH = 560f;
+        float cardW = 1040f;
+        float cardH = 580f;
         float cardX = (VIRTUAL_WIDTH - cardW) / 2f;
         float cardY = (VIRTUAL_HEIGHT - cardH) / 2f;
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
         shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(new Color(0.03f, 0.05f, 0.12f, 0.95f));
+        
+        // Full screen dimming backdrop
+        shapeRenderer.setColor(new Color(0f, 0f, 0f, 0.85f));
+        shapeRenderer.rect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+
+        // Modal Card Background & Header Bar
+        shapeRenderer.setColor(new Color(0.03f, 0.05f, 0.12f, 0.96f));
         shapeRenderer.rect(cardX, cardY, cardW, cardH);
-        shapeRenderer.setColor(new Color(0.12f, 0.45f, 0.85f, 0.9f));
-        shapeRenderer.rect(cardX, cardY + cardH - 50f, cardW, 50f);
+        shapeRenderer.setColor(new Color(0.12f, 0.45f, 0.85f, 0.95f));
+        shapeRenderer.rect(cardX, cardY + cardH - 52f, cardW, 52f);
         shapeRenderer.end();
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
@@ -2893,7 +2899,7 @@ public class GameplayScreen implements Screen, InputProcessor {
 
         font.getData().setScale(0.85f);
         font.setColor(new Color(0.9f, 0.9f, 0.9f, 0.85f));
-        font.draw(batch, "Tekan [ H / ESC ] untuk Tutup   |   Tekan [ BACKSPACE ] untuk Undo / Backtrack", cardX + cardW - 550f, cardY + cardH - 18f);
+        font.draw(batch, "Tekan [ H / ESC ] untuk Tutup   |   Tekan [ BACKSPACE ] untuk Undo", cardX + cardW - 510f, cardY + cardH - 18f);
 
         int count = 0;
         float rowY = cardY + cardH - 85f;
@@ -2925,15 +2931,21 @@ public class GameplayScreen implements Screen, InputProcessor {
     private void renderMapGraphOverlay() {
         if (!isMapGraphActive) return;
 
-        float cardW = 1040f;
-        float cardH = 580f;
+        float cardW = 1080f;
+        float cardH = 610f;
         float cardX = (VIRTUAL_WIDTH - cardW) / 2f;
         float cardY = (VIRTUAL_HEIGHT - cardH) / 2f;
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
         shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(new Color(0.04f, 0.07f, 0.14f, 0.96f));
+
+        // Full screen dimming backdrop to cover calendar HUD and room text completely!
+        shapeRenderer.setColor(new Color(0f, 0f, 0f, 0.85f));
+        shapeRenderer.rect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+
+        // Modal Card Body
+        shapeRenderer.setColor(new Color(0.04f, 0.07f, 0.14f, 0.98f));
         shapeRenderer.rect(cardX, cardY, cardW, cardH);
         
         // Header line accent
@@ -2942,14 +2954,14 @@ public class GameplayScreen implements Screen, InputProcessor {
 
         // Active path card container
         shapeRenderer.setColor(new Color(0.07f, 0.14f, 0.22f, 0.9f));
-        shapeRenderer.rect(cardX + 25f, cardY + cardH - 150f, cardW - 50f, 85f);
+        shapeRenderer.rect(cardX + 20f, cardY + cardH - 150f, cardW - 40f, 85f);
 
         shapeRenderer.end();
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(new Color(0.2f, 0.8f, 0.55f, 0.8f));
         shapeRenderer.rect(cardX, cardY, cardW, cardH);
-        shapeRenderer.rect(cardX + 25f, cardY + cardH - 150f, cardW - 50f, 85f);
+        shapeRenderer.rect(cardX + 20f, cardY + cardH - 150f, cardW - 40f, 85f);
         shapeRenderer.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
 
@@ -2961,12 +2973,12 @@ public class GameplayScreen implements Screen, InputProcessor {
 
         font.getData().setScale(0.85f);
         font.setColor(new Color(0.9f, 1.0f, 0.9f, 0.9f));
-        font.draw(batch, "Tekan [ M / ESC ] untuk Tutup   |   Sistem Navigasi Graf Kampus", cardX + cardW - 480f, cardY + cardH - 18f);
+        font.draw(batch, "Tekan [ M / ESC ] untuk Tutup   |   Sistem Navigasi Graf Kampus", cardX + cardW - 440f, cardY + cardH - 18f);
 
         // Current Location & Shortest Path BFS Output
         font.setColor(Color.GOLD);
         font.getData().setScale(0.95f);
-        font.draw(batch, "📍 LOKASI SAAT INI: " + formatZoneName(currentZone), cardX + 45f, cardY + cardH - 80f);
+        font.draw(batch, "📍 LOKASI SAAT INI: " + formatZoneName(currentZone), cardX + 35f, cardY + cardH - 80f);
 
         java.util.List<ExplorationZone> shortestPath = mapNavigationGraph.findShortestPathBFS(currentZone, ExplorationZone.UKM_MUSIK);
         StringBuilder sbPath = new StringBuilder("🚩 Rute Tercepat ke UKM Musik: ");
@@ -2980,22 +2992,23 @@ public class GameplayScreen implements Screen, InputProcessor {
         
         font.getData().setScale(0.85f);
         GlyphLayout pathLayout = new GlyphLayout(font, pathText);
-        float maxUsableWidth = cardW - 90f;
+        float maxUsableWidth = cardW - 80f;
         float pathScale = 0.85f;
         if (pathLayout.width > maxUsableWidth) {
             pathScale = (maxUsableWidth / pathLayout.width) * 0.85f;
         }
         font.getData().setScale(pathScale);
         font.setColor(Color.CYAN);
-        font.draw(batch, pathText, cardX + 45f, cardY + cardH - 112f);
+        font.draw(batch, pathText, cardX + 35f, cardY + cardH - 112f);
         font.getData().setScale(1.0f);
 
         // 2-Column Grid of Location Nodes
         font.setColor(Color.WHITE);
         font.draw(batch, "🌐 DAFTAR LOKASI & AKSES JALUR TERHUBUNG:", cardX + 25f, cardY + cardH - 170f);
 
-        float col1X = cardX + 35f;
-        float col2X = cardX + 530f;
+        float col1X = cardX + 30f;
+        float col2X = cardX + 560f;
+        float maxColWidth = 480f;
         float nodeY = cardY + cardH - 205f;
 
         ExplorationZone[] zones = ExplorationZone.values();
@@ -3017,8 +3030,17 @@ public class GameplayScreen implements Screen, InputProcessor {
                     if (k < neighbors.size() - 1) sbN.append(", ");
                 }
             }
+            String nText = sbN.toString();
+            font.getData().setScale(0.85f);
+            GlyphLayout nLayout = new GlyphLayout(font, nText);
+            float nScale = 0.85f;
+            if (nLayout.width > maxColWidth) {
+                nScale = (maxColWidth / nLayout.width) * 0.85f;
+            }
+            font.getData().setScale(nScale);
             font.setColor(isCurrent ? Color.YELLOW : Color.LIGHT_GRAY);
-            font.draw(batch, sbN.toString(), drawX, drawY - 22f);
+            font.draw(batch, nText, drawX, drawY - 22f);
+            font.getData().setScale(1.0f);
         }
 
         font.getData().setScale(1.0f);
@@ -3072,21 +3094,27 @@ public class GameplayScreen implements Screen, InputProcessor {
     private void renderLinkedListInventory() {
         if (!isInventoryActive) return;
 
-        float cardW = 1040f;
-        float cardH = 580f;
+        float cardW = 1080f;
+        float cardH = 610f;
         float cardX = (VIRTUAL_WIDTH - cardW) / 2f;
         float cardY = (VIRTUAL_HEIGHT - cardH) / 2f;
 
-        float colW = 485f;
-        float colH = 480f;
-        float col1X = cardX + 25f;
-        float col2X = cardX + colW + 20f;
+        float colW = 505f;
+        float colH = 500f;
+        float col1X = cardX + 20f;
+        float col2X = cardX + colW + 30f;
         float innerY = cardY + 20f;
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
         shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(new Color(0.07f, 0.05f, 0.14f, 0.96f));
+
+        // Full screen dimming backdrop to cover calendar HUD completely!
+        shapeRenderer.setColor(new Color(0f, 0f, 0f, 0.85f));
+        shapeRenderer.rect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
+
+        // Modal Card Background & Headers
+        shapeRenderer.setColor(new Color(0.07f, 0.05f, 0.14f, 0.98f));
         shapeRenderer.rect(cardX, cardY, cardW, cardH);
         
         // Header line accent
@@ -3116,7 +3144,7 @@ public class GameplayScreen implements Screen, InputProcessor {
 
         font.getData().setScale(0.85f);
         font.setColor(new Color(1.0f, 0.95f, 0.8f, 0.9f));
-        font.draw(batch, "Tekan [ I / ESC ] untuk Tutup   |   Catatan Jurnal Sesi Musik", cardX + cardW - 480f, cardY + cardH - 18f);
+        font.draw(batch, "Tekan [ I / ESC ] untuk Tutup   |   Catatan Jurnal Sesi Musik", cardX + cardW - 440f, cardY + cardH - 18f);
 
         // Column 1: Quests
         font.setColor(Color.GOLD);
