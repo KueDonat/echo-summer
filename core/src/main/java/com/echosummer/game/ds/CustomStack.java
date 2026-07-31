@@ -8,7 +8,7 @@ import java.util.EmptyStackException;
  *
  * @param <T> Element type
  */
-public class CustomStack<T> implements IStack<T> {
+public class CustomStack<T> implements IStack<T>, Iterable<T> {
     private static class Node<E> {
         E data;
         Node<E> next;
