@@ -208,12 +208,6 @@ public class StoryData {
             populateTreeBranches(childTreeNode, nodes, depth + 1);
         }
     }
-            Gdx.app.error("StoryData", "Error reading or parsing story.json: " + e.getMessage());
-            e.printStackTrace();
-        }
-
-        return nodes;
-    }
 
     private static void applyStateChanges(GameState s, JsonValue actionVal) {
         if (actionVal == null) return;
