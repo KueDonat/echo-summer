@@ -2874,12 +2874,12 @@ public class GameplayScreen implements Screen, InputProcessor {
         shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         
-        // Full screen dimming backdrop
-        shapeRenderer.setColor(new Color(0f, 0f, 0f, 0.85f));
+        // Full screen dimming backdrop with 94% dark navy opacity
+        shapeRenderer.setColor(new Color(0.01f, 0.02f, 0.05f, 0.94f));
         shapeRenderer.rect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 
         // Modal Card Background & Header Bar
-        shapeRenderer.setColor(new Color(0.03f, 0.05f, 0.12f, 0.96f));
+        shapeRenderer.setColor(new Color(0.03f, 0.05f, 0.12f, 0.98f));
         shapeRenderer.rect(cardX, cardY, cardW, cardH);
         shapeRenderer.setColor(new Color(0.12f, 0.45f, 0.85f, 0.95f));
         shapeRenderer.rect(cardX, cardY + cardH - 52f, cardW, 52f);
@@ -2906,14 +2906,15 @@ public class GameplayScreen implements Screen, InputProcessor {
         for (DialogueNode node : dialogueHistoryStack) {
             if (node == null || count >= 7) break;
             
-            font.setColor(Color.GOLD);
-            String speaker = node.speaker != null ? node.speaker : "Narasi";
-            font.draw(batch, "[" + speaker + "]", cardX + 30f, rowY);
+            String speaker = (node.speaker != null && !node.speaker.trim().isEmpty()) ? node.speaker.trim() : "Narasi";
+            boolean isNarrative = "Narasi".equals(speaker);
+            font.setColor(isNarrative ? new Color(0.7f, 0.85f, 1.0f, 0.9f) : Color.GOLD);
+            font.draw(batch, "[" + speaker + "]", cardX + 35f, rowY);
 
             font.setColor(Color.WHITE);
             String textPrev = node.text != null ? node.text.replace("\n", " ") : "...";
-            if (textPrev.length() > 68) textPrev = textPrev.substring(0, 68) + "...";
-            font.draw(batch, textPrev, cardX + 180f, rowY);
+            if (textPrev.length() > 72) textPrev = textPrev.substring(0, 72) + "...";
+            font.draw(batch, textPrev, cardX + 175f, rowY);
 
             rowY -= 62f;
             count++;
@@ -2921,7 +2922,7 @@ public class GameplayScreen implements Screen, InputProcessor {
 
         if (count == 0) {
             font.setColor(Color.LIGHT_GRAY);
-            font.draw(batch, "(Belum ada riwayat dialog tersimpan dalam sesi percakapan ini)", cardX + 30f, rowY);
+            font.draw(batch, "(Belum ada riwayat dialog tersimpan dalam sesi percakapan ini)", cardX + 35f, rowY);
         }
 
         font.getData().setScale(1.0f);
@@ -2940,8 +2941,8 @@ public class GameplayScreen implements Screen, InputProcessor {
         shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
-        // Full screen dimming backdrop to cover calendar HUD and room text completely!
-        shapeRenderer.setColor(new Color(0f, 0f, 0f, 0.85f));
+        // Full screen dimming backdrop to cover calendar HUD completely
+        shapeRenderer.setColor(new Color(0.01f, 0.02f, 0.05f, 0.94f));
         shapeRenderer.rect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 
         // Modal Card Body
