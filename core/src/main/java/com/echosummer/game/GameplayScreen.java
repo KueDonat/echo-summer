@@ -2972,12 +2972,23 @@ public class GameplayScreen implements Screen, InputProcessor {
         StringBuilder sbPath = new StringBuilder("🚩 Rute Tercepat ke UKM Musik: ");
         if (shortestPath != null) {
             for (int i = 0; i < shortestPath.size(); i++) {
-                sbPath.append(formatZoneName(shortestPath.get(i)));
+                sbPath.append(formatZoneNameShort(shortestPath.get(i)));
                 if (i < shortestPath.size() - 1) sbPath.append(" ➔ ");
             }
         }
+        String pathText = sbPath.toString();
+        
+        font.getData().setScale(0.85f);
+        GlyphLayout pathLayout = new GlyphLayout(font, pathText);
+        float maxUsableWidth = cardW - 90f;
+        float pathScale = 0.85f;
+        if (pathLayout.width > maxUsableWidth) {
+            pathScale = (maxUsableWidth / pathLayout.width) * 0.85f;
+        }
+        font.getData().setScale(pathScale);
         font.setColor(Color.CYAN);
-        font.draw(batch, sbPath.toString(), cardX + 45f, cardY + cardH - 112f);
+        font.draw(batch, pathText, cardX + 45f, cardY + cardH - 112f);
+        font.getData().setScale(1.0f);
 
         // 2-Column Grid of Location Nodes
         font.setColor(Color.WHITE);
@@ -3002,7 +3013,7 @@ public class GameplayScreen implements Screen, InputProcessor {
             StringBuilder sbN = new StringBuilder("   • Terhubung ke: ");
             if (neighbors != null) {
                 for (int k = 0; k < neighbors.size(); k++) {
-                    sbN.append(formatZoneName(neighbors.get(k)));
+                    sbN.append(formatZoneNameShort(neighbors.get(k)));
                     if (k < neighbors.size() - 1) sbN.append(", ");
                 }
             }
@@ -3012,6 +3023,28 @@ public class GameplayScreen implements Screen, InputProcessor {
 
         font.getData().setScale(1.0f);
         batch.end();
+    }
+
+    private String formatZoneNameShort(ExplorationZone zone) {
+        if (zone == null) return "-";
+        switch (zone) {
+            case KOST: return "Kost";
+            case KOST_OUTSIDE: return "Depan Kost";
+            case WARKOP: return "Warmindo";
+            case KAMPUS: return "Gerbang Kampus";
+            case TAMAN_KAMPUS: return "Taman";
+            case KANTIN: return "Kantin";
+            case LORONG_1: return "Lorong 1";
+            case LORONG_2: return "Lorong 2";
+            case KEDAI_KOPI: return "Kedai Kopi";
+            case STUDIO_SENI: return "Studio Seni";
+            case JALAN_SETAPAK: return "Jalan Setapak";
+            case JALAN_DANAU: return "Danau";
+            case LUAR_RUANG_STUDIO: return "Luar Studio";
+            case DALAM_STUDIO: return "Dalam Studio";
+            case UKM_MUSIK: return "UKM Musik";
+            default: return zone.name();
+        }
     }
 
     private String formatZoneName(ExplorationZone zone) {
