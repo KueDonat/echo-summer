@@ -3,20 +3,23 @@ package com.echosummer.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
+import com.echosummer.game.ds.CustomHashTable;
+import com.echosummer.game.ds.CustomTree;
+import com.echosummer.game.ds.adt.IHashTable;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  * Contains the complete dialogue script, event triggers, and choices for Echo Summer.
- * Refactored to load from assets/story.json.
+ * Integrated with CustomHashTable (O(1) node index) and CustomTree (Decision Tree branching).
  */
 public class StoryData {
-    public static Map<String, DialogueNode> buildStory(
+    public static CustomHashTable<String, DialogueNode> buildStoryHashTable(
         final GameState state, 
         final Runnable onStartRhythmGame, 
         final Runnable onTriggerEnding
     ) {
-        Map<String, DialogueNode> nodes = new HashMap<>();
+        CustomHashTable<String, DialogueNode> nodes = new CustomHashTable<>(127);
 
         try {
             JsonReader reader = new JsonReader();
@@ -155,6 +158,56 @@ public class StoryData {
                 nodes.put(nodeId, dNode);
             }
         } catch (Exception e) {
+            Gdx.app.error("StoryData", "Error parsing story.json: " + e.getMessage());
+        }
+
+        return nodes;
+    }
+
+    public static Map<String, DialogueNode> buildStory(
+        final GameState state, 
+        final Runnable onStartRhythmGame, 
+        final Runnable onTriggerEnding
+    ) {
+        CustomHashTable<String, DialogueNode> ht = buildStoryHashTable(state, onStartRhythmGame, onTriggerEnding);
+        Map<String, DialogueNode> map = new HashMap<>();
+        for (String key : ht.keys()) {
+            map.put(key, ht.get(key));
+        }
+        return map;
+    }
+
+    public static CustomTree<DialogueNode> buildStoryTree(CustomHashTable<String, DialogueNode> nodes) {
+        DialogueNode rootNode = nodes.get("PROLOG_START");
+        if (rootNode == null) return new CustomTree<>();
+
+        CustomTree<DialogueNode> tree = new CustomTree<>(rootNode);
+        CustomTree.TreeNode<DialogueNode> rootTreeNode = tree.getRoot();
+
+        // Recursively or iteratively populate child branches
+        populateTreeBranches(rootTreeNode, nodes, 0);
+        return tree;
+    }
+
+    private static void populateTreeBranches(CustomTree.TreeNode<DialogueNode> parentTreeNode, CustomHashTable<String, DialogueNode> nodes, int depth) {
+        if (depth > 50 || parentTreeNode == null) return;
+        DialogueNode dNode = parentTreeNode.getData();
+        if (dNode == null) return;
+
+        if (dNode.choices != null) {
+            for (Choice choice : dNode.choices) {
+                if (choice.nextNodeId != null && nodes.containsKey(choice.nextNodeId)) {
+                    DialogueNode childNode = nodes.get(choice.nextNodeId);
+                    CustomTree.TreeNode<DialogueNode> childTreeNode = parentTreeNode.addChild(childNode);
+                    populateTreeBranches(childTreeNode, nodes, depth + 1);
+                }
+            }
+        } else if (dNode.nextId != null && nodes.containsKey(dNode.nextId)) {
+            DialogueNode childNode = nodes.get(dNode.nextId);
+            CustomTree.TreeNode<DialogueNode> childTreeNode = parentTreeNode.addChild(childNode);
+            populateTreeBranches(childTreeNode, nodes, depth + 1);
+        }
+    }
             Gdx.app.error("StoryData", "Error reading or parsing story.json: " + e.getMessage());
             e.printStackTrace();
         }

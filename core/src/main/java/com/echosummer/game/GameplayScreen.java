@@ -24,6 +24,11 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.JsonReader;
 import com.badlogic.gdx.utils.JsonValue;
+import com.echosummer.game.ds.CustomStack;
+import com.echosummer.game.ds.CustomLinkedList;
+import com.echosummer.game.ds.LocationGraph;
+import com.echosummer.game.ds.CustomHashTable;
+import com.echosummer.game.ds.CustomTree;
 import java.util.Map;
 import java.util.HashMap;
 
@@ -212,7 +217,33 @@ public class GameplayScreen implements Screen, InputProcessor {
     private RhythmGame rhythmGame;
     private Music rhythmMusic;
     private Music creditsMusic;
-    private boolean rhythmFromBandPractice = false;
+    // Data Structure Core Engine Members
+    private final CustomStack<DialogueNode> dialogueHistoryStack = new CustomStack<>();
+    private final LocationGraph<ExplorationZone> mapNavigationGraph = new LocationGraph<>();
+    private final CustomLinkedList<String> activeQuestList = new CustomLinkedList<>();
+    private CustomHashTable<String, DialogueNode> storyNodeHashTable;
+    private CustomTree<DialogueNode> storyDecisionTree;
+
+    private void initMapNavigationGraph() {
+        for (ExplorationZone zone : ExplorationZone.values()) {
+            mapNavigationGraph.addVertex(zone);
+        }
+        mapNavigationGraph.addEdge(ExplorationZone.KOST, ExplorationZone.KAMAR_KOST);
+        mapNavigationGraph.addEdge(ExplorationZone.KOST, ExplorationZone.JALAN_RAYA);
+        mapNavigationGraph.addEdge(ExplorationZone.JALAN_RAYA, ExplorationZone.GERBANG_KAMPUS);
+        mapNavigationGraph.addEdge(ExplorationZone.GERBANG_KAMPUS, ExplorationZone.KANTIN);
+        mapNavigationGraph.addEdge(ExplorationZone.GERBANG_KAMPUS, ExplorationZone.TAMAN_KAMPUS);
+        mapNavigationGraph.addEdge(ExplorationZone.TAMAN_KAMPUS, ExplorationZone.GEDUNG_UTAMA);
+        mapNavigationGraph.addEdge(ExplorationZone.GEDUNG_UTAMA, ExplorationZone.UKM_MUSIK);
+        mapNavigationGraph.addEdge(ExplorationZone.UKM_MUSIK, ExplorationZone.STUDIO);
+        mapNavigationGraph.addEdge(ExplorationZone.STUDIO, ExplorationZone.DALAM_STUDIO);
+        mapNavigationGraph.addEdge(ExplorationZone.GEDUNG_UTAMA, ExplorationZone.STUDIO_SENI);
+        mapNavigationGraph.addEdge(ExplorationZone.JALAN_RAYA, ExplorationZone.KEDAI_KOPI);
+        mapNavigationGraph.addEdge(ExplorationZone.GERBANG_KAMPUS, ExplorationZone.TOKO_MUSIK);
+        mapNavigationGraph.addEdge(ExplorationZone.JALAN_RAYA, ExplorationZone.HALTE_BUS);
+        mapNavigationGraph.addEdge(ExplorationZone.HALTE_BUS, ExplorationZone.ALUN_ALUN);
+        mapNavigationGraph.addEdge(ExplorationZone.ALUN_ALUN, ExplorationZone.ROOFTOP);
+    }
 
     private boolean isPracticeDay(int day) {
         return day == 20 || day == 19 || day == 18 || day == 15 || day == 12;
@@ -541,6 +572,18 @@ public class GameplayScreen implements Screen, InputProcessor {
         // Load expression textures
         loadExpressionTextures();
 
+        // Initialize Data Structure map graph & Story Data Structures
+        initMapNavigationGraph();
+        storyNodeHashTable = StoryData.buildStoryHashTable(
+            gameState,
+            new Runnable() { @Override public void run() { startRhythmGame(); } },
+            new Runnable() { @Override public void run() { triggerEnding(); } }
+        );
+        storyDecisionTree = StoryData.buildStoryTree(storyNodeHashTable);
+
+        activeQuestList.clear();
+        activeQuestList.add(getCurrentQuest());
+
         // Load starting node
         if (isLoadGame) {
             loadNodeBackgroundOnly(gameState.dialogueNodeId);
@@ -569,8 +612,15 @@ public class GameplayScreen implements Screen, InputProcessor {
             return;
         }
 
+        if (currentNode != null) {
+            dialogueHistoryStack.push(currentNode);
+        }
         gameState.dialogueNodeId = nodeId;
-        currentNode = storyNodes.get(nodeId);
+        if (storyNodeHashTable != null && storyNodeHashTable.containsKey(nodeId)) {
+            currentNode = storyNodeHashTable.get(nodeId);
+        } else {
+            currentNode = storyNodes.get(nodeId);
+        }
 
         // Execute action if present
         if (currentNode.action != null) {

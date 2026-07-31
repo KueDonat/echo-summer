@@ -8,13 +8,13 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.Align;
+import com.echosummer.game.ds.CustomQueue;
 import java.util.Random;
 
 /**
  * Handles the 4-lane rhythm game mechanics during the performance.
  * Synchronizes note movement and hit detection with the Music position.
+ * Integrated with CustomQueue ADT for FIFO note processing.
  */
 public class RhythmGame {
     public static class Note {
@@ -33,6 +33,7 @@ public class RhythmGame {
     }
 
     private final Array<Note> notes = new Array<>();
+    private final CustomQueue<Note> noteQueue = new CustomQueue<>();
     private float scrollSpeed = 350f; // Pixels per second
 
     public int score = 0;
@@ -243,6 +244,11 @@ public class RhythmGame {
 
                 notes.add(note);
             }
+        }
+
+        noteQueue.clear();
+        for (Note n : notes) {
+            noteQueue.enqueue(n);
         }
 
         if (notes.size > 0) {
