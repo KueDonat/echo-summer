@@ -77,4 +77,9 @@ public class CustomStack<T> implements IStack<T> {
         }
         return list;
     }
+
+    @Override
+    public java.util.Iterator<T> iterator() {
+        return toList().iterator();
+    }
 }

@@ -2867,7 +2867,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         for (DialogueNode node : dialogueHistoryStack) {
             if (node == null || count >= 8) break;
             font.setColor(Color.GOLD);
-            String speaker = node.speakerName != null ? node.speakerName : "Narasi";
+            String speaker = node.speaker != null ? node.speaker : "Narasi";
             font.draw(batch, "[" + (count + 1) + "] " + speaker + ":", 130f, startY);
 
             font.setColor(Color.WHITE);
