@@ -634,7 +634,8 @@ public class RhythmGame {
             }
             shape.rect(startX + totalWidth + 25f, hitZoneY, 16f, fillHeight);
 
-            // Draw falling notes
+            // Draw falling notes (Clipped below Top HUD container)
+            float topHudCutoffY = height - 140f;
             for (int i = 0; i < notes.size; i++) {
                 Note n = notes.get(i);
                 if (n.hit || n.missed) continue;
@@ -646,7 +647,7 @@ public class RhythmGame {
                     endY = hitZoneY + (n.targetTime + n.duration - currentTime) * scrollSpeed;
                 }
 
-                if (endY > 0 && ny < height + 50) {
+                if (endY > 0 && ny < topHudCutoffY) {
                     Color laneColor;
                     if (n.lane == 0) laneColor = new Color(0.95f, 0.3f, 0.4f, 1f);
                     else if (n.lane == 1) laneColor = new Color(0.3f, 0.8f, 0.4f, 1f);
@@ -661,7 +662,10 @@ public class RhythmGame {
                         shape.setColor(new Color(laneColor.r, laneColor.g, laneColor.b, 0.6f));
                         float drawNy = Math.max(ny, hitZoneY);
                         if (n.isHeld) drawNy = hitZoneY;
-                        shape.rect(nx - 10, drawNy, 20, endY - drawNy);
+                        float drawEndY = Math.min(endY, topHudCutoffY);
+                        if (drawEndY > drawNy) {
+                            shape.rect(nx - 10, drawNy, 20, drawEndY - drawNy);
+                        }
                     }
 
                     if (!n.isHeld) {
@@ -673,23 +677,34 @@ public class RhythmGame {
                 }
             }
 
+            // Draw Top HUD Container Panel
+            float hudW = 540f;
+            float hudH = 135f;
+            float hudX = (width - hudW) / 2f;
+            float hudY = height - hudH - 5f;
+
+            shape.setColor(new Color(0.04f, 0.07f, 0.14f, 0.92f));
+            shape.rect(hudX, hudY, hudW, hudH);
+
             shape.end();
 
-            // Draw HP Bar Border & Music Progress Bar
+            // Draw Progress Bar inside Top HUD Container
             shape.begin(ShapeRenderer.ShapeType.Filled);
-            float barW = 320f;
-            float barH = 8f;
+            float barW = 340f;
+            float barH = 6f;
             float barX = (width - barW) / 2f;
-            float barY = height - 120f;
+            float barY = height - 85f;
             float progress = Math.min(1.0f, Math.max(0f, currentTime / duration));
 
-            shape.setColor(new Color(0.12f, 0.15f, 0.25f, 0.8f));
+            shape.setColor(new Color(0.12f, 0.18f, 0.3f, 0.9f));
             shape.rect(barX, barY, barW, barH);
             shape.setColor(new Color(0.2f, 0.85f, 1.0f, 0.95f));
             shape.rect(barX, barY, barW * progress, barH);
             shape.end();
 
             shape.begin(ShapeRenderer.ShapeType.Line);
+            shape.setColor(new Color(0.25f, 0.55f, 0.9f, 0.7f));
+            shape.rect(hudX, hudY, hudW, hudH);
             shape.setColor(new Color(1f, 1f, 1f, 0.4f));
             shape.rect(startX + totalWidth + 25f, hitZoneY, 16f, height - 250f);
             shape.rect(barX, barY, barW, barH);
@@ -700,28 +715,31 @@ public class RhythmGame {
             // 2. Draw text HUD
             batch.begin();
             font.setColor(Color.WHITE);
-            font.draw(batch, gameTitle, width / 2f - 300f, height - 35, 600, Align.center, false);
-            font.draw(batch, "Skor: " + score + "   (P: " + perfects + "  G: " + goods + "  M: " + misses + ")", width / 2f - 200f, height - 65, 400, 1, false);
+            font.getData().setScale(1.05f);
+            font.draw(batch, gameTitle, width / 2f - 250f, height - 14f, 500, Align.center, false);
+
+            font.getData().setScale(0.85f);
+            font.setColor(new Color(0.9f, 0.95f, 1.0f, 0.9f));
+            font.draw(batch, "Skor: " + score + "   (P: " + perfects + "  G: " + goods + "  M: " + misses + ")", width / 2f - 200f, height - 40f, 400, Align.center, false);
 
             int curSec = (int) Math.max(0, currentTime);
             int totalSec = (int) Math.max(0, duration);
             String timeStr = String.format("🎵 Waktu: %02d:%02d / %02d:%02d", curSec / 60, curSec % 60, totalSec / 60, totalSec % 60);
             font.setColor(Color.GOLD);
-            font.draw(batch, timeStr, width / 2f - 200f, height - 95, 400, 1, false);
+            font.draw(batch, timeStr, width / 2f - 200f, height - 63f, 400, Align.center, false);
 
-            // Draw Data Structure Queue HUD
+            // Draw Data Structure Queue HUD cleanly below progress bar
             font.setColor(Color.CYAN);
-            font.getData().setScale(0.85f);
             String queueStr = "[QUEUE FIFO] Sisa Note: " + noteQueue.size();
             if (!noteQueue.isEmpty()) {
                 Note peekNote = noteQueue.peek();
                 queueStr += " | Next Note: [" + laneKeys[peekNote.lane] + "]";
             }
-            font.draw(batch, queueStr, width / 2f - 250f, height - 120f, 500, Align.center, false);
+            font.draw(batch, queueStr, width / 2f - 250f, height - 106f, 500, Align.center, false);
             font.getData().setScale(1.0f);
 
             font.setColor(Color.LIGHT_GRAY);
-            font.draw(batch, "HP", startX + totalWidth + 20f, hitZoneY - 10f, 26f, 1, false);
+            font.draw(batch, "HP", startX + totalWidth + 14f, hitZoneY - 10f, 40f, Align.center, false);
 
             font.setColor(Color.WHITE);
             for (int i = 0; i < 4; i++) {
