@@ -2802,14 +2802,33 @@ public class GameplayScreen implements Screen, InputProcessor {
             font.draw(batch, "🎸 Kreativitas: " + gameState.creativity, textStartX, badgeY + badgeH - 90f);
         }
         
-        if (state == GameplayState.EXPLORATION_STATE) {
-            font.setColor(Color.CYAN);
-            font.draw(batch, "[A]/[D] Jalan | [SPACE] Interaksi | [TAB] HP | [ESC] Pause", 20f, 80f);
-            font.draw(batch, "[M] Campus Map Graph | [I] Inventory (Linked List)", 20f, 50f);
-            font.draw(batch, "[H] History Stack Log | [BACKSPACE] Backtrack Dialogue", 20f, 20f);
-        } else if (state == GameplayState.DIALOGUE_STATE) {
-            font.setColor(Color.YELLOW);
-            font.draw(batch, "[H] History Stack Log | [BACKSPACE] Backtrack Dialogue", 20f, 20f);
+        if (state == GameplayState.EXPLORATION_STATE || state == GameplayState.DIALOGUE_STATE) {
+            float barW = 1020f;
+            float barH = 34f;
+            float barX = (VIRTUAL_WIDTH - barW) / 2f;
+            float barY = 15f;
+
+            Gdx.gl.glEnable(GL20.GL_BLEND);
+            shape.begin(ShapeRenderer.ShapeType.Filled);
+            shape.setColor(new Color(0.04f, 0.06f, 0.12f, 0.88f));
+            shape.rect(barX, barY, barW, barH);
+            shape.end();
+
+            shape.begin(ShapeRenderer.ShapeType.Line);
+            shape.setColor(new Color(0.2f, 0.45f, 0.8f, 0.7f));
+            shape.rect(barX, barY, barW, barH);
+            shape.end();
+            Gdx.gl.glDisable(GL20.GL_BLEND);
+
+            batch.begin();
+            font.setColor(Color.WHITE);
+            font.getData().setScale(0.85f);
+            if (state == GameplayState.EXPLORATION_STATE) {
+                font.draw(batch, "[A/D] Jalan   •   [SPACE] Interaksi   •   [TAB] HP   •   [M] Peta Kampus   •   [I] Inventaris   •   [H] Riwayat   •   [ESC] Menu", barX, barY + 23f, barW, Align.center, false);
+            } else {
+                font.draw(batch, "[SPACE / ENTER] Lanjut   •   [H] Riwayat Dialog   •   [BACKSPACE] Undo / Rewind Dialog", barX, barY + 23f, barW, Align.center, false);
+            }
+            font.getData().setScale(1.0f);
         }
 
         if (autoSaveToastTimer > 0) {
@@ -2840,48 +2859,57 @@ public class GameplayScreen implements Screen, InputProcessor {
     private void renderDialogueHistoryStack() {
         if (!isDialogueHistoryActive) return;
 
+        float cardW = 1000f;
+        float cardH = 560f;
+        float cardX = (VIRTUAL_WIDTH - cardW) / 2f;
+        float cardY = (VIRTUAL_HEIGHT - cardH) / 2f;
+
         Gdx.gl.glEnable(GL20.GL_BLEND);
         shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(new Color(0.02f, 0.04f, 0.1f, 0.92f));
-        shapeRenderer.rect(100f, 50f, VIRTUAL_WIDTH - 200f, VIRTUAL_HEIGHT - 100f);
+        shapeRenderer.setColor(new Color(0.03f, 0.05f, 0.12f, 0.95f));
+        shapeRenderer.rect(cardX, cardY, cardW, cardH);
+        shapeRenderer.setColor(new Color(0.12f, 0.45f, 0.85f, 0.9f));
+        shapeRenderer.rect(cardX, cardY + cardH - 50f, cardW, 50f);
         shapeRenderer.end();
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        shapeRenderer.setColor(Color.CYAN);
-        shapeRenderer.rect(100f, 50f, VIRTUAL_WIDTH - 200f, VIRTUAL_HEIGHT - 100f);
+        shapeRenderer.setColor(new Color(0.3f, 0.65f, 1.0f, 0.8f));
+        shapeRenderer.rect(cardX, cardY, cardW, cardH);
         shapeRenderer.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
 
         SpriteBatch batch = game.getBatch();
         batch.begin();
-        font.setColor(Color.CYAN);
-        font.getData().setScale(1.2f);
-        font.draw(batch, "📚 DIALOGUE HISTORY LOG (STACK LIFO)", 130f, VIRTUAL_HEIGHT - 70f);
-        font.getData().setScale(0.9f);
-        font.setColor(Color.LIGHT_GRAY);
-        font.draw(batch, "Tekan [ H ] untuk menutup | Tekan [ BACKSPACE ] untuk Rewind/Undo", 130f, VIRTUAL_HEIGHT - 105f);
+        font.setColor(Color.WHITE);
+        font.getData().setScale(1.15f);
+        font.draw(batch, "📚 RIWAYAT DIALOG (DIALOGUE LOG)", cardX + 20f, cardY + cardH - 15f);
+
+        font.getData().setScale(0.85f);
+        font.setColor(new Color(0.9f, 0.9f, 0.9f, 0.85f));
+        font.draw(batch, "Tekan [ H / ESC ] untuk Tutup   |   Tekan [ BACKSPACE ] untuk Undo / Backtrack", cardX + cardW - 550f, cardY + cardH - 18f);
 
         int count = 0;
-        float startY = VIRTUAL_HEIGHT - 145f;
+        float rowY = cardY + cardH - 85f;
         for (DialogueNode node : dialogueHistoryStack) {
-            if (node == null || count >= 8) break;
+            if (node == null || count >= 7) break;
+            
             font.setColor(Color.GOLD);
             String speaker = node.speaker != null ? node.speaker : "Narasi";
-            font.draw(batch, "[" + (count + 1) + "] " + speaker + ":", 130f, startY);
+            font.draw(batch, "[" + speaker + "]", cardX + 30f, rowY);
 
             font.setColor(Color.WHITE);
             String textPrev = node.text != null ? node.text.replace("\n", " ") : "...";
-            if (textPrev.length() > 65) textPrev = textPrev.substring(0, 65) + "...";
-            font.draw(batch, textPrev, 260f, startY);
+            if (textPrev.length() > 68) textPrev = textPrev.substring(0, 68) + "...";
+            font.draw(batch, textPrev, cardX + 180f, rowY);
 
-            startY -= 55f;
+            rowY -= 62f;
             count++;
         }
 
         if (count == 0) {
-            font.setColor(Color.GRAY);
-            font.draw(batch, "(Belum ada riwayat dialog tersimpan di Stack)", 130f, startY);
+            font.setColor(Color.LIGHT_GRAY);
+            font.draw(batch, "(Belum ada riwayat dialog tersimpan dalam sesi percakapan ini)", cardX + 30f, rowY);
         }
 
         font.getData().setScale(1.0f);
@@ -2891,110 +2919,203 @@ public class GameplayScreen implements Screen, InputProcessor {
     private void renderMapGraphOverlay() {
         if (!isMapGraphActive) return;
 
+        float cardW = 1040f;
+        float cardH = 580f;
+        float cardX = (VIRTUAL_WIDTH - cardW) / 2f;
+        float cardY = (VIRTUAL_HEIGHT - cardH) / 2f;
+
         Gdx.gl.glEnable(GL20.GL_BLEND);
         shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(new Color(0.04f, 0.06f, 0.12f, 0.94f));
-        shapeRenderer.rect(80f, 40f, VIRTUAL_WIDTH - 160f, VIRTUAL_HEIGHT - 80f);
+        shapeRenderer.setColor(new Color(0.04f, 0.07f, 0.14f, 0.96f));
+        shapeRenderer.rect(cardX, cardY, cardW, cardH);
+        
+        // Header line accent
+        shapeRenderer.setColor(new Color(0.1f, 0.65f, 0.45f, 0.95f));
+        shapeRenderer.rect(cardX, cardY + cardH - 52f, cardW, 52f);
+
+        // Active path card container
+        shapeRenderer.setColor(new Color(0.07f, 0.14f, 0.22f, 0.9f));
+        shapeRenderer.rect(cardX + 25f, cardY + cardH - 150f, cardW - 50f, 85f);
+
         shapeRenderer.end();
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        shapeRenderer.setColor(Color.GREEN);
-        shapeRenderer.rect(80f, 40f, VIRTUAL_WIDTH - 160f, VIRTUAL_HEIGHT - 80f);
+        shapeRenderer.setColor(new Color(0.2f, 0.8f, 0.55f, 0.8f));
+        shapeRenderer.rect(cardX, cardY, cardW, cardH);
+        shapeRenderer.rect(cardX + 25f, cardY + cardH - 150f, cardW - 50f, 85f);
         shapeRenderer.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
 
         SpriteBatch batch = game.getBatch();
         batch.begin();
-        font.setColor(Color.GREEN);
-        font.getData().setScale(1.2f);
-        font.draw(batch, "🗺️ CAMPUS LOCATION GRAPH & NAVIGATOR", 110f, VIRTUAL_HEIGHT - 65f);
-        font.getData().setScale(0.9f);
-        font.setColor(Color.LIGHT_GRAY);
-        font.draw(batch, "Tekan [ M ] untuk menutup | Visualisasi Graph Simpul & Jalur Peta", 110f, VIRTUAL_HEIGHT - 98f);
+        font.setColor(Color.WHITE);
+        font.getData().setScale(1.15f);
+        font.draw(batch, "🗺️ PETA KAMPUS & RUTE NAVIGASI", cardX + 20f, cardY + cardH - 15f);
 
-        // Render shortest path BFS result
-        java.util.List<ExplorationZone> shortestPath = mapNavigationGraph.findShortestPathBFS(currentZone, ExplorationZone.UKM_MUSIK);
+        font.getData().setScale(0.85f);
+        font.setColor(new Color(0.9f, 1.0f, 0.9f, 0.9f));
+        font.draw(batch, "Tekan [ M / ESC ] untuk Tutup   |   Sistem Navigasi Graf Kampus", cardX + cardW - 480f, cardY + cardH - 18f);
+
+        // Current Location & Shortest Path BFS Output
         font.setColor(Color.GOLD);
-        font.draw(batch, "📍 Lokasi Saat Ini: " + currentZone.name(), 110f, VIRTUAL_HEIGHT - 135f);
-        
-        StringBuilder sbPath = new StringBuilder("🚩 Rute Terpendek ke UKM Musik (BFS Graph): ");
+        font.getData().setScale(0.95f);
+        font.draw(batch, "📍 LOKASI SAAT INI: " + formatZoneName(currentZone), cardX + 45f, cardY + cardH - 80f);
+
+        java.util.List<ExplorationZone> shortestPath = mapNavigationGraph.findShortestPathBFS(currentZone, ExplorationZone.UKM_MUSIK);
+        StringBuilder sbPath = new StringBuilder("🚩 Rute Tercepat ke UKM Musik: ");
         if (shortestPath != null) {
             for (int i = 0; i < shortestPath.size(); i++) {
-                sbPath.append(shortestPath.get(i).name());
+                sbPath.append(formatZoneName(shortestPath.get(i)));
                 if (i < shortestPath.size() - 1) sbPath.append(" ➔ ");
             }
         }
         font.setColor(Color.CYAN);
-        font.draw(batch, sbPath.toString(), 110f, VIRTUAL_HEIGHT - 165f);
+        font.draw(batch, sbPath.toString(), cardX + 45f, cardY + cardH - 112f);
 
-        // Render vertices list
+        // 2-Column Grid of Location Nodes
         font.setColor(Color.WHITE);
-        font.draw(batch, "🌐 SIMPUL LOKASI (VERTICES & EDGES GRAPH):", 110f, VIRTUAL_HEIGHT - 210f);
+        font.draw(batch, "🌐 DAFTAR LOKASI & AKSES JALUR TERHUBUNG:", cardX + 25f, cardY + cardH - 170f);
 
-        float nodeY = VIRTUAL_HEIGHT - 245f;
-        int idx = 1;
-        for (ExplorationZone zone : ExplorationZone.values()) {
-            if (idx > 7) break;
-            font.setColor(zone == currentZone ? Color.GOLD : Color.LIGHT_GRAY);
-            java.util.List<ExplorationZone> neighbors = mapNavigationGraph.getNeighbors(zone);
-            String neighborStr = neighbors != null ? neighbors.toString() : "[]";
-            font.draw(batch, idx + ". " + zone.name() + " ↔ Neighbors: " + neighborStr, 110f, nodeY);
-            nodeY -= 45f;
-            idx++;
+        float col1X = cardX + 35f;
+        float col2X = cardX + 530f;
+        float nodeY = cardY + cardH - 205f;
+
+        ExplorationZone[] zones = ExplorationZone.values();
+
+        for (int i = 0; i < zones.length && i < 12; i++) {
+            ExplorationZone z = zones[i];
+            float drawX = (i < 6) ? col1X : col2X;
+            float drawY = (i < 6) ? (nodeY - i * 54f) : (nodeY - (i - 6) * 54f);
+
+            boolean isCurrent = (z == currentZone);
+            font.setColor(isCurrent ? Color.GOLD : Color.WHITE);
+            font.draw(batch, (i + 1) + ". " + formatZoneName(z), drawX, drawY);
+
+            java.util.List<ExplorationZone> neighbors = mapNavigationGraph.getNeighbors(z);
+            StringBuilder sbN = new StringBuilder("   • Terhubung ke: ");
+            if (neighbors != null) {
+                for (int k = 0; k < neighbors.size(); k++) {
+                    sbN.append(formatZoneName(neighbors.get(k)));
+                    if (k < neighbors.size() - 1) sbN.append(", ");
+                }
+            }
+            font.setColor(isCurrent ? Color.YELLOW : Color.LIGHT_GRAY);
+            font.draw(batch, sbN.toString(), drawX, drawY - 22f);
         }
 
         font.getData().setScale(1.0f);
         batch.end();
     }
 
+    private String formatZoneName(ExplorationZone zone) {
+        if (zone == null) return "-";
+        switch (zone) {
+            case KOST: return "Kamar Kost";
+            case KOST_OUTSIDE: return "Depan Kost";
+            case WARKOP: return "Warmindo Warkop";
+            case KAMPUS: return "Gerbang Utama Kampus";
+            case TAMAN_KAMPUS: return "Taman Kampus";
+            case KANTIN: return "Kantin Kampus";
+            case LORONG_1: return "Lorong Utama 1";
+            case LORONG_2: return "Lorong Utama 2";
+            case KEDAI_KOPI: return "Kedai Kopi Hits";
+            case STUDIO_SENI: return "Studio Seni";
+            case JALAN_SETAPAK: return "Jalan Setapak";
+            case JALAN_DANAU: return "Area Danau Kampus";
+            case LUAR_RUANG_STUDIO: return "Depan Ruang Studio";
+            case DALAM_STUDIO: return "Dalam Studio Latihan";
+            case UKM_MUSIK: return "Ruang UKM Musik";
+            default: return zone.name();
+        }
+    }
+
     private void renderLinkedListInventory() {
         if (!isInventoryActive) return;
+
+        float cardW = 1040f;
+        float cardH = 580f;
+        float cardX = (VIRTUAL_WIDTH - cardW) / 2f;
+        float cardY = (VIRTUAL_HEIGHT - cardH) / 2f;
+
+        float colW = 485f;
+        float colH = 480f;
+        float col1X = cardX + 25f;
+        float col2X = cardX + colW + 20f;
+        float innerY = cardY + 20f;
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
         shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(new Color(0.08f, 0.04f, 0.12f, 0.94f));
-        shapeRenderer.rect(120f, 60f, VIRTUAL_WIDTH - 240f, VIRTUAL_HEIGHT - 120f);
+        shapeRenderer.setColor(new Color(0.07f, 0.05f, 0.14f, 0.96f));
+        shapeRenderer.rect(cardX, cardY, cardW, cardH);
+        
+        // Header line accent
+        shapeRenderer.setColor(new Color(0.85f, 0.6f, 0.1f, 0.95f));
+        shapeRenderer.rect(cardX, cardY + cardH - 52f, cardW, 52f);
+
+        // Column Cards Background
+        shapeRenderer.setColor(new Color(0.12f, 0.08f, 0.22f, 0.85f));
+        shapeRenderer.rect(col1X, innerY, colW, colH);
+        shapeRenderer.rect(col2X, innerY, colW, colH);
+
         shapeRenderer.end();
 
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        shapeRenderer.setColor(Color.GOLD);
-        shapeRenderer.rect(120f, 60f, VIRTUAL_WIDTH - 240f, VIRTUAL_HEIGHT - 120f);
+        shapeRenderer.setColor(new Color(0.9f, 0.7f, 0.2f, 0.8f));
+        shapeRenderer.rect(cardX, cardY, cardW, cardH);
+        shapeRenderer.rect(col1X, innerY, colW, colH);
+        shapeRenderer.rect(col2X, innerY, colW, colH);
         shapeRenderer.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
 
         SpriteBatch batch = game.getBatch();
         batch.begin();
+        font.setColor(Color.WHITE);
+        font.getData().setScale(1.15f);
+        font.draw(batch, "🎒 INVENTARIS & JURNAL QUEST", cardX + 20f, cardY + cardH - 15f);
+
+        font.getData().setScale(0.85f);
+        font.setColor(new Color(1.0f, 0.95f, 0.8f, 0.9f));
+        font.draw(batch, "Tekan [ I / ESC ] untuk Tutup   |   Catatan Jurnal Sesi Musik", cardX + cardW - 480f, cardY + cardH - 18f);
+
+        // Column 1: Quests
         font.setColor(Color.GOLD);
-        font.getData().setScale(1.2f);
-        font.draw(batch, "🎒 INVENTORY & QUEST LOG (LINKED LIST)", 150f, VIRTUAL_HEIGHT - 85f);
-        font.getData().setScale(0.9f);
-        font.setColor(Color.LIGHT_GRAY);
-        font.draw(batch, "Tekan [ I ] untuk menutup | Iterasi Doubly Linked List activeQuestList", 150f, VIRTUAL_HEIGHT - 120f);
+        font.getData().setScale(1.0f);
+        font.draw(batch, "📜 OBJEKTIF & QUEST AKTIF", col1X + 20f, innerY + colH - 25f);
 
         font.setColor(Color.WHITE);
-        font.draw(batch, "📜 OBJEKTIF / QUEST AKTIF:", 150f, VIRTUAL_HEIGHT - 165f);
-        font.setColor(Color.YELLOW);
+        font.getData().setScale(0.9f);
         int qIdx = 1;
+        float questY = innerY + colH - 70f;
         for (String quest : activeQuestList) {
-            font.draw(batch, "  " + qIdx + ". " + quest, 150f, VIRTUAL_HEIGHT - 195f - (qIdx - 1) * 35f);
+            font.setColor(Color.YELLOW);
+            font.draw(batch, "• Objektif (" + gameState.day + " Hari Terakhir):", col1X + 20f, questY);
+            font.setColor(Color.WHITE);
+            font.draw(batch, quest, col1X + 20f, questY - 26f);
+            questY -= 75f;
             qIdx++;
         }
 
-        font.setColor(Color.WHITE);
-        font.draw(batch, "🎸 ITEM BAND & INVENTARIS:", 150f, VIRTUAL_HEIGHT - 270f);
-        
-        String[] bandItems = {
-            "Gitar Akustik Fender (Kondisi Senar: Baiki)",
-            "Buku Catatan Lirik & Melodi \"Tatap Esok\"",
-            "Pik Gitar Nyaman (Bonus Aksesori Band)",
-            "Kopi Susu Warmindo Kost (Item Energi)"
+        // Column 2: Band Items
+        font.setColor(Color.GOLD);
+        font.getData().setScale(1.0f);
+        font.draw(batch, "🎸 ITEM BAND & PERALATAN", col2X + 20f, innerY + colH - 25f);
+
+        String[][] bandItems = {
+            {"Gitar Akustik Fender", "Senar terpasang rapi, siap untuk latihan & konser."},
+            {"Buku Catatan Lirik \"Tatap Esok\"", "Gubahan lagu kenangan bersama sahabat."},
+            {"Pik Gitar Nyaman", "Aksesori pendukung latihan gubahan melodi."},
+            {"Kopi Susu Warmindo Kost", "Item penambah stamina saat bergadang gubah lagu."}
         };
 
+        float itemY = innerY + colH - 70f;
         for (int i = 0; i < bandItems.length; i++) {
+            font.setColor(Color.CYAN);
+            font.draw(batch, "• " + bandItems[i][0], col2X + 20f, itemY);
             font.setColor(Color.LIGHT_GRAY);
-            font.draw(batch, "  • " + bandItems[i], 150f, VIRTUAL_HEIGHT - 305f - i * 35f);
+            font.draw(batch, bandItems[i][1], col2X + 35f, itemY - 22f);
+            itemY -= 65f;
         }
 
         font.getData().setScale(1.0f);
