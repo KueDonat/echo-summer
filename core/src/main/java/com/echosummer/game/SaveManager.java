@@ -33,6 +33,9 @@ public class SaveManager {
             if (file.exists()) {
                 String content = file.readString();
                 state.deserialize(content);
+                if (state.day <= 0) {
+                    state.day = 30;
+                }
                 Gdx.app.log("SaveManager", "Game loaded successfully from: " + filename);
             } else {
                 Gdx.app.log("SaveManager", "No save file found. Initializing new game state for: " + filename);
@@ -46,7 +49,7 @@ public class SaveManager {
     }
 
     public static String getLatestSaveFile() {
-        String[] files = {"autosave.dat", "savegame.dat", "savegame_1.dat", "savegame_2.dat", "savegame_3.dat"};
+        String[] files = {"autosave.dat", "savegame_1.dat", "savegame_2.dat", "savegame_3.dat", "savegame.dat"};
         String latestFile = "savegame.dat";
         long latestTime = -1;
 

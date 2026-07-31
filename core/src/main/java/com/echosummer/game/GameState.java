@@ -132,7 +132,10 @@ public class GameState {
         
         try {
             if (map.containsKey("chapter")) chapter = map.get("chapter");
-            if (map.containsKey("day")) day = Integer.parseInt(map.get("day"));
+            if (map.containsKey("day")) {
+                int parsedDay = Integer.parseInt(map.get("day"));
+                day = parsedDay > 0 ? parsedDay : 30;
+            }
             if (map.containsKey("money")) money = Integer.parseInt(map.get("money"));
             if (map.containsKey("mental")) mental = map.get("mental");
             if (map.containsKey("creativity")) creativity = Integer.parseInt(map.get("creativity"));

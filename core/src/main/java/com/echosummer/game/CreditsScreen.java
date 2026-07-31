@@ -65,6 +65,7 @@ public class CreditsScreen implements Screen {
     private boolean isDragging = false;
     private float lastDragY = 0f;
     private final List<Texture> managedTextures = new ArrayList<>();
+    private com.badlogic.gdx.audio.Music creditsMusic;
 
     public CreditsScreen(Main game, Screen previousScreen) {
         this.game = game;
@@ -80,6 +81,17 @@ public class CreditsScreen implements Screen {
         stage = new Stage(new ScreenViewport());
         shapeRenderer = new ShapeRenderer();
         
+        try {
+            if (Gdx.files.internal("music/Gravits.mp3").exists()) {
+                creditsMusic = Gdx.audio.newMusic(Gdx.files.internal("music/Gravits.mp3"));
+                creditsMusic.setLooping(false);
+                creditsMusic.setVolume(SettingsManager.getVolume());
+                creditsMusic.play();
+            }
+        } catch (Exception e) {
+            Gdx.app.error("CreditsScreen", "Error playing Gravits.mp3: " + e.getMessage());
+        }
+
         loadCreditsJson();
         createFontsAndAssets();
 
@@ -270,6 +282,13 @@ public class CreditsScreen implements Screen {
     }
 
     private void returnToPreviousScreen() {
+        if (creditsMusic != null) {
+            if (creditsMusic.isPlaying()) {
+                creditsMusic.stop();
+            }
+            creditsMusic.dispose();
+            creditsMusic = null;
+        }
         if (previousScreen != null) {
             game.setScreen(previousScreen);
         } else {
@@ -282,10 +301,12 @@ public class CreditsScreen implements Screen {
         Gdx.gl.glClearColor(0.05f, 0.07f, 0.12f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        float screenW = Gdx.graphics.getWidth();
-        float screenH = Gdx.graphics.getHeight();
-
+        stage.getViewport().apply();
         SpriteBatch batch = game.getBatch();
+        batch.setProjectionMatrix(stage.getCamera().combined);
+
+        float screenW = stage.getViewport().getWorldWidth();
+        float screenH = stage.getViewport().getWorldHeight();
 
         // 1. Draw Background Image
         if (backgroundTexture != null) {
@@ -298,15 +319,30 @@ public class CreditsScreen implements Screen {
 
         // 2. Dark Overlay
         Gdx.gl.glEnable(GL20.GL_BLEND);
+        shapeRenderer.setProjectionMatrix(stage.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(new Color(0.04f, 0.06f, 0.10f, 0.88f));
         shapeRenderer.rect(0, 0, screenW, screenH);
         shapeRenderer.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
 
-        // 3. Auto Scroll
+        // 3. Auto Scroll synced to Gravits.mp3 music duration
         if (!isDragging) {
-            scrollY += delta * 50f;
+            float contentHeight = 140f;
+            for (CreditSection sec : creditsList) {
+                contentHeight += 38f + sec.names.size() * 32f + 45f;
+            }
+            contentHeight += 250f;
+            float totalDistance = contentHeight + 400f;
+
+            if (creditsMusic != null && creditsMusic.isPlaying()) {
+                float pos = creditsMusic.getPosition();
+                float duration = 275.0f; // Gravits.mp3 total duration (~4m35s)
+                float progress = Math.min(1.0f, Math.max(0.0f, pos / duration));
+                scrollY = -100f + progress * totalDistance;
+            } else {
+                scrollY += delta * 7.5f;
+            }
         }
 
         // 4. Render Movie Credits Text
@@ -317,25 +353,25 @@ public class CreditsScreen implements Screen {
         // Title
         titleFont.setColor(new Color(0.98f, 0.85f, 0.35f, 1f));
         titleFont.draw(batch, creditsTitle, 0f, curY, screenW, Align.center, false);
-        curY -= 45f;
+        curY -= 55f;
 
         // Subtitle
         subtitleFont.setColor(new Color(0.85f, 0.88f, 0.95f, 0.9f));
         subtitleFont.draw(batch, creditsSubtitle, 0f, curY, screenW, Align.center, false);
-        curY -= 70f;
+        curY -= 85f;
 
         // Sections
         for (CreditSection sec : creditsList) {
             headerFont.setColor(new Color(1.0f, 0.80f, 0.30f, 1f));
             headerFont.draw(batch, sec.header, 0f, curY, screenW, Align.center, false);
-            curY -= 32f;
+            curY -= 38f;
 
             nameFont.setColor(Color.WHITE);
             for (String name : sec.names) {
                 nameFont.draw(batch, name, 0f, curY, screenW, Align.center, false);
-                curY -= 28f;
+                curY -= 32f;
             }
-            curY -= 35f;
+            curY -= 45f;
         }
 
         // Closing Quote
@@ -382,6 +418,13 @@ public class CreditsScreen implements Screen {
 
     @Override
     public void dispose() {
+        if (creditsMusic != null) {
+            if (creditsMusic.isPlaying()) {
+                creditsMusic.stop();
+            }
+            creditsMusic.dispose();
+            creditsMusic = null;
+        }
         if (stage != null) stage.dispose();
         if (skin != null) skin.dispose();
         if (shapeRenderer != null) shapeRenderer.dispose();

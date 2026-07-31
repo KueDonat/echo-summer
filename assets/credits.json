@@ -3,31 +3,62 @@
   "subtitle": "Sebuah Kisah Tentang Kebangkitan, Musik, dan Persahabatan",
   "credits": [
     {
-      "header": "DIBUAT DAN DIKEMBANGKAN OLEH",
-      "names": ["KELOMPOK 3 1B TRPL"]
+      "header": "TIM PENGEMBANG UTAMA",
+      "names": ["KELOMPOK 3 — 1B TRPL 2026"]
     },
     {
-      "header": "PENULIS CERITA & SUTRADARA",
-      "names": ["Alif Ikrom Akbar & Muhammad Azhar Pratama Arianto"]
+      "header": "SUTRADARA & PENULIS CERITA",
+      "names": ["Alif Ikrom Akbar", "Muhammad Azhar Pratama Arianto"]
     },
     {
-      "header": "DESAIN KARAKTER & ARTWORK",
-      "names": ["Erina Putri & Muhammad Azhar Pratama Arianto"]
+      "header": "DESAIN KARAKTER & VISUAL ART",
+      "names": ["Erina Putri", "Muhammad Azhar Pratama Arianto"]
     },
     {
-      "header": "KOMPOSER MUSIK & EFEK SUARA",
+      "header": "PEMROGRAMAN SYSTEM & GAME ENGINE",
       "names": ["Alif Ikrom Akbar"]
     },
     {
-      "header": "PENGEMBANG SISTEM GAMEPLAY",
+      "header": "DESAIN RHYTHM ENGINE & AUDIO SCRIPTING",
       "names": ["Alif Ikrom Akbar"]
+    },
+    {
+      "header": "PEMERAN & KARAKTER UTAMA",
+      "names": [
+        "Raksha — Vokalis & Gitaris Ryhtm",
+        "Clara — Gitaris Utama & Vokalis Harmoni",
+        "Bagas — Drummer & Pemimpin Band",
+        "Rania — Basis & Penata Panggung",
+        "Sherly — Manajer Band & Fotografer"
+      ]
+    },
+    {
+      "header": "PENGISIAN SUARA & SOUNDTRACK",
+      "names": [
+        "\"Gravits\" — Official Ending Soundtrack",
+        "\"Tatap Esok\" — Theme Song Band Echo Summer",
+        "\"Seandainya\" — Electric Guitar Cover Practice"
+      ]
+    },
+    {
+      "header": "PENGUJI KUALITAS & ASISTEN TEKNIS",
+      "names": ["Tim QA Kelompok 3 TRPL", "Penguji Internal 1B TRPL 2026"]
+    },
+    {
+      "header": "DENGAN DUKUNGAN SPESIAL DARI",
+      "names": [
+        "Dosen Pengampu Struktur Data — Bu Rara",
+        "Instruktur Praktikum — Kak Afni",
+        "Program Studi Teknologi Rekayasa Perangkat Lunak (TRPL)",
+        "Jurusan Teknik Informatika — Angkatan 2026"
+      ]
     },
     {
       "header": "UCAPAN TERIMA KASIH KHUSUS",
       "names": [
-        "Dosen dan Instruktur Struktur Data Bu Rara & Kak Afni",
-        "Rekan - Rekan Kelompok 3 1B TRPL",
-        "Teman - Teman 1B TRPL 2026"
+        "Keluarga & Teman-Teman 1B TRPL",
+        "Komunitas Pengembang Game LibGDX Indonesia",
+        "Dan KAMU — Yang Telah Menemukan Kembali Suaramu Bersama Echo Summer."
       ]
     }
   ],

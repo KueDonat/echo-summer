@@ -498,8 +498,11 @@ public class MainMenuScreen implements Screen {
         Gdx.gl.glClearColor(0.08f, 0.12f, 0.15f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        float width = Gdx.graphics.getWidth();
-        float height = Gdx.graphics.getHeight();
+        stage.getViewport().apply();
+        game.getBatch().setProjectionMatrix(stage.getCamera().combined);
+
+        float width = stage.getViewport().getWorldWidth();
+        float height = stage.getViewport().getWorldHeight();
 
         // Draw Background Image
         game.getBatch().begin();

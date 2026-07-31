@@ -65,16 +65,32 @@ public class RhythmGame {
     private boolean failed = false;
     private boolean wasFailed = false;
 
+    // Header title text
+    private String gameTitle = "LATIHAN GITAR - \"SEANDAINYA - VIERRA\"";
+
     // Lanes styling
     private final String[] laneKeys = {"D", "F", "J", "K"};
 
     public void start(Music music) {
-        start(music, 400f);
+        start(music, 400f, null);
+    }
+
+    public void start(Music music, String title) {
+        start(music, 400f, title);
     }
 
     public void start(Music music, float targetDuration) {
+        start(music, targetDuration, null);
+    }
+
+    public void start(Music music, float targetDuration, String title) {
         this.music = music;
         this.duration = targetDuration;
+        if (title != null && !title.trim().isEmpty()) {
+            this.gameTitle = title;
+        } else {
+            this.gameTitle = "LATIHAN BAND - \"TATAP ESOK\"";
+        }
 
         if (kresekSound == null) {
             try {
@@ -666,7 +682,7 @@ public class RhythmGame {
             // 2. Draw text HUD
             batch.begin();
             font.setColor(Color.WHITE);
-            font.draw(batch, "LATIHAN GITAR - \"SEANDAINYA - VIERRA\"", width / 2f - 200f, height - 35, 400, 1, false);
+            font.draw(batch, gameTitle, width / 2f - 300f, height - 35, 600, Align.center, false);
             font.draw(batch, "Skor: " + score + "   (P: " + perfects + "  G: " + goods + "  M: " + misses + ")", width / 2f - 200f, height - 65, 400, 1, false);
 
             int curSec = (int) Math.max(0, currentTime);

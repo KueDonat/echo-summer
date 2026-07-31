@@ -1012,7 +1012,30 @@
   {
     "nodeId": "CH2_PRACTICE_SUCCESS",
     "speaker": "",
-    "text": "Semua menutup mata. Pelan-pelan, Bagas mulai memukul drum pelan. Rania mengikuti. Clara memainkan piano. Raksha bernyanyi pelan.\n\nRaksha: \"Gue kehilangan suara... Di ruang yang sepi... Lalu lu datang... Mengisi hari...\"\n\nHarmoni pertama mereka. Sesuatu yang indah lahir di ruangan itu.\n\nSherly: \"(merekam dengan ponsel, berbisik) Ini... ini dia.\"",
+    "text": "Semua menutup mata. Pelan-pelan, Bagas mulai memukul drum pelan. Rania mengikuti. Clara memainkan piano. Raksha bernyanyi pelan.",
+    "background": "background/background_dalam_studio.png",
+    "nextId": "CH2_PRACTICE_SUCCESS_2"
+  },
+  {
+    "nodeId": "CH2_PRACTICE_SUCCESS_2",
+    "speaker": "Raksha",
+    "expression": "biasa aja",
+    "text": "Gue kehilangan suara... Di ruang yang sepi... Lalu lu datang... Mengisi hari...",
+    "background": "background/background_dalam_studio.png",
+    "nextId": "CH2_PRACTICE_SUCCESS_3"
+  },
+  {
+    "nodeId": "CH2_PRACTICE_SUCCESS_3",
+    "speaker": "",
+    "text": "Harmoni pertama mereka. Sesuatu yang indah lahir di ruangan itu.",
+    "background": "background/background_dalam_studio.png",
+    "nextId": "CH2_PRACTICE_SUCCESS_4"
+  },
+  {
+    "nodeId": "CH2_PRACTICE_SUCCESS_4",
+    "speaker": "Sherly",
+    "expression": "bahagia",
+    "text": "(merekam dengan ponsel, berbisik) Ini... ini dia.",
     "background": "background/background_dalam_studio.png",
     "nextId": "CH2_MELODY_STAGE"
   },
@@ -1255,7 +1278,15 @@
   {
     "nodeId": "CH3_ALDO_5",
     "speaker": "",
-    "text": "Raksha dan Clara kembali ke Dalam Ruang Studio Musik. Bagas, Rania, dan Sherly tersenyum lega menyambut kedatangan mereka.\n\nRaksha: 'Gue minta maaf karena sempet ragu. Gue janji gak akan lari lagi dari masalah ini.'",
+    "text": "Raksha dan Clara kembali ke Dalam Ruang Studio Musik. Bagas, Rania, dan Sherly tersenyum lega menyambut kedatangan mereka.",
+    "background": "background/background_dalam_studio.png",
+    "nextId": "CH3_ALDO_5_RAKSHA"
+  },
+  {
+    "nodeId": "CH3_ALDO_5_RAKSHA",
+    "speaker": "Raksha",
+    "expression": "biasa aja",
+    "text": "Gue minta maaf karena sempet ragu. Gue janji gak akan lari lagi dari masalah ini.",
     "background": "background/background_dalam_studio.png",
     "nextId": "CH3_BIG_CHOICE"
   },
@@ -1392,6 +1423,21 @@
     "text": "Gue melangkah ke atas panggung. Lampu sorot menyala terang. Ribuan mata menatap kami...",
     "background": "background/background_kantin.png",
     "nextId": "CH4_STRING_CHOICE"
+  },
+  {
+    "nodeId": "CH4_CONCERT_SUCCESS",
+    "speaker": "",
+    "text": "Tepuk tangan gemuruh membahana di seluruh area panggung festival! Penonton bersorak histeris menyambut penampilan luar biasa dari Echo Summer!",
+    "background": "background/background_kantin.png",
+    "nextId": "CH4_CONCERT_SUCCESS_2"
+  },
+  {
+    "nodeId": "CH4_CONCERT_SUCCESS_2",
+    "speaker": "Clara",
+    "text": "Kita berhasil, Raka! Penampilan kita benar-benar menyatu dengan penonton!",
+    "expression": "bahagia",
+    "background": "background/background_kantin.png",
+    "nextId": "END_TRUE_1"
   },
   {
     "nodeId": "CH4_STRING_CHOICE",

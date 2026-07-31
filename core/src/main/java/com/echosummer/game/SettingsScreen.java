@@ -192,6 +192,8 @@ public class SettingsScreen implements Screen {
         Gdx.gl.glClearColor(0.1f, 0.1f, 0.12f, 1f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
+        stage.getViewport().apply();
+
         stage.act(Math.min(Gdx.graphics.getDeltaTime(), 1 / 30f));
         stage.draw();
     }

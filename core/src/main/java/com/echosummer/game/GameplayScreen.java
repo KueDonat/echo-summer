@@ -211,10 +211,11 @@ public class GameplayScreen implements Screen, InputProcessor {
     // RHYTHM_STATE: Engine
     private RhythmGame rhythmGame;
     private Music rhythmMusic;
+    private Music creditsMusic;
     private boolean rhythmFromBandPractice = false;
 
     private boolean isPracticeDay(int day) {
-        return day == 20 || day == 18 || day == 15 || day == 12;
+        return day == 20 || day == 19 || day == 18 || day == 15 || day == 12;
     }
 
     // Cinematic Transition Variables
@@ -380,6 +381,12 @@ public class GameplayScreen implements Screen, InputProcessor {
         // Load GameState
         if (isLoadGame) {
             gameState = SaveManager.loadGame(saveFileName);
+            if (gameState.day <= 0) {
+                gameState.day = 30;
+            }
+            syncChapterWithDay();
+            remainingDays = gameState.day;
+            updateTimeOfDay();
             
             // Restore loaded state
             state = GameplayState.valueOf(gameState.gameplayState);
@@ -419,9 +426,9 @@ public class GameplayScreen implements Screen, InputProcessor {
             public void run() {
                 // onStartRhythmGame
                 state = GameplayState.RHYTHM_STATE;
-                rhythmMusic = Gdx.audio.newMusic(Gdx.files.internal("backsound_main_menu.mp3"));
-                rhythmMusic.setVolume(0.5f);
-                rhythmGame.start(rhythmMusic);
+                rhythmMusic = Gdx.audio.newMusic(Gdx.files.internal("music/Tatap_Esok.mp3"));
+                rhythmMusic.setVolume(SettingsManager.getVolume());
+                rhythmGame.start(rhythmMusic, "LATIHAN BAND - \"TATAP ESOK\"");
             }
         }, new Runnable() {
             @Override
@@ -541,6 +548,9 @@ public class GameplayScreen implements Screen, InputProcessor {
                 loadNode(gameState.dialogueNodeId);
             } else {
                 currentNode = storyNodes.get(gameState.dialogueNodeId);
+                if (currentNode != null && currentNode.nodeId != null && currentNode.nodeId.endsWith("_DAY_LOOP")) {
+                    currentNode.text = "Hari ke-" + gameState.day + " menjelang festival.\nSisa uang: Rp" + gameState.money + ".\nBagaimana aku menghabiskan hari ini?";
+                }
             }
         } else {
             loadNode(gameState.dialogueNodeId);
@@ -1949,55 +1959,201 @@ public class GameplayScreen implements Screen, InputProcessor {
             batch.draw(rakshaFrame, rakshaDrawX + rakshaSpriteSize, rakshaDrawY, -rakshaSpriteSize, rakshaSpriteSize);
         }
 
-        // 4. Draw Quest UI
-        String questText = getCurrentQuest();
-        GlyphLayout questLayout = new GlyphLayout(font, questText);
-        float textW = questLayout.width + 40f;
-        float textH = font.getLineHeight() + 20f;
-        
-        // Draw semi-transparent background for Quest
+        // 4. Draw Modern Rich Non-Flat HUD (Location & Objective Cards with Pill Badges & Gradients)
+        String locName = "";
+        String locSub = "";
+        switch (currentZone) {
+            case KOST:
+                locName = "Kamar Kost";
+                locSub = "";
+                break;
+            case KOST_OUTSIDE:
+                locName = "Halaman Kost";
+                locSub = "[A] Kiri: Kedai Kopi    |    [D] Kanan: Jalan Raya";
+                break;
+            case WARKOP:
+                locName = "Jalan Raya";
+                locSub = "[A] Kiri: Halaman Kost    |    [D] Kanan: Taman Kampus";
+                break;
+            case TAMAN_KAMPUS:
+                locName = "Taman Kampus";
+                locSub = "[A] Kiri: Jalan Raya    |    [W] Masuk: Kantin    |    [D] Kanan: Lorong 1";
+                break;
+            case KANTIN:
+                locName = "Kantin Kampus";
+                locSub = "[W] Keluar ke Taman Kampus";
+                break;
+            case LORONG_1:
+                locName = "Lorong 1";
+                locSub = "[A] Kiri: Taman Kampus    |    [W] Masuk: UKM Musik    |    [D] Kanan: Lorong 2";
+                break;
+            case LORONG_2:
+                locName = "Lorong 2";
+                locSub = "[A] Kiri: Lorong 1    |    [W] Masuk: Studio Seni    |    [D] Kanan: Kampus Utama";
+                break;
+            case KEDAI_KOPI:
+                locName = "Kedai Kopi";
+                locSub = "[A] Kiri: Jalan Danau    |    [D] Kanan: Halaman Kost";
+                break;
+            case KAMPUS:
+                locName = "Kampus Utama";
+                locSub = "[A] Kiri: Lorong 2    |    [D] Kanan: Studio Seni";
+                break;
+            case STUDIO_SENI:
+                locName = "Studio Seni";
+                locSub = "[A] Kiri: Kampus Utama";
+                break;
+            case JALAN_SETAPAK:
+                locName = "Jalan Setapak";
+                locSub = "[D] Kanan: Jalan Danau";
+                break;
+            case JALAN_DANAU:
+                locName = "Jalan Danau";
+                locSub = "[A] Kiri: Jalan Setapak    |    [D] Kanan: Kedai Kopi";
+                break;
+            case LUAR_RUANG_STUDIO:
+                locName = "Luar Studio Musik";
+                locSub = "[A] Kiri: Jalan Setapak";
+                break;
+            case DALAM_STUDIO:
+                locName = "Dalam Studio Musik";
+                locSub = "";
+                break;
+            case UKM_MUSIK:
+                locName = "Ruang UKM Musik";
+                locSub = "";
+                break;
+            default:
+                locName = "Unknown";
+                locSub = "";
+                break;
+        }
+
+        String rawQuest = getCurrentQuest();
+        String cleanedQuest = rawQuest.replace("🎯 ", "").trim();
+        String questDetail = cleanedQuest;
+        if (cleanedQuest.startsWith("Objektif ")) {
+            questDetail = cleanedQuest.substring(9).trim();
+        }
+
+        // Layout measurements for Tag Badges
+        String tag1Text = " LOKASI ";
+        String tag2Text = " OBJEKTIF ";
+        GlyphLayout layoutTag1 = new GlyphLayout(font, tag1Text);
+        GlyphLayout layoutTag2 = new GlyphLayout(font, tag2Text);
+        GlyphLayout layoutLocName = new GlyphLayout(font, locName);
+        GlyphLayout layoutLocSub = locSub.isEmpty() ? null : new GlyphLayout(font, locSub);
+        GlyphLayout layoutQuestDetail = new GlyphLayout(font, questDetail);
+
+        float paddingX = 14f;
+        float paddingY = 10f;
+        float stripeW = 5f;
+        float tag1W = layoutTag1.width + 8f;
+        float tag2W = layoutTag2.width + 8f;
+
+        float row1LocW = tag1W + 12f + layoutLocName.width;
+        float locContentW = (layoutLocSub != null && layoutLocSub.width > row1LocW) ? layoutLocSub.width : row1LocW;
+        float questContentW = tag2W + 12f + layoutQuestDetail.width;
+
+        float minCardW = 420f;
+        float cardW = Math.max(minCardW, Math.max(locContentW, questContentW) + paddingX * 2 + stripeW + 12f);
+
+        float lineHeight = font.getLineHeight();
+        float locCardH = locSub.isEmpty() ? (lineHeight + paddingY * 2 + 4f) : (lineHeight * 2 + paddingY * 2 + 10f);
+        float questCardH = lineHeight + paddingY * 2 + 4f;
+
+        float cardStartX = 20f;
+        float locCardY = VIRTUAL_HEIGHT - 15f - locCardH;
+        float questCardY = locCardY - 10f - questCardH;
+
         batch.end();
         Gdx.gl.glEnable(GL20.GL_BLEND);
         Gdx.gl.glBlendFunc(GL20.GL_SRC_ALPHA, GL20.GL_ONE_MINUS_SRC_ALPHA);
         shapeRenderer.setProjectionMatrix(camera.combined);
+
+        // 1. Drop Shadows behind Cards
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        shapeRenderer.setColor(0, 0, 0, 0.6f);
-        shapeRenderer.rect(20, VIRTUAL_HEIGHT - textH - 20, textW, textH);
-        
-        // Draw Location Hint tag above it
-        String locationHint = "";
-        switch (currentZone) {
-            case KOST:   locationHint = "Lokasi: Kamar Kost"; break;
-            case KOST_OUTSIDE: locationHint = "Lokasi: Halaman Kost (Kiri ke Kedai Kopi, Kanan ke Jalan Raya)"; break;
-            case WARKOP: locationHint = "Lokasi: Jalan Raya (Kiri ke Halaman Kost, Kanan ke Taman Kampus)"; break;
-            case TAMAN_KAMPUS: locationHint = "Lokasi: Taman Kampus (Kiri ke Jalan Raya, Tengah ke Kantin, Kanan ke Lorong 1)"; break;
-            case KANTIN: locationHint = "Lokasi: Kantin Kampus (Tengah / Kiri / Kanan ke Taman Kampus)"; break;
-            case LORONG_1: locationHint = "Lokasi: Lorong 1 (Kiri ke Taman Kampus, W: Masuk UKM Musik, Kanan ke Lorong 2)"; break;
-            case LORONG_2: locationHint = "Lokasi: Lorong 2 (Kiri ke Lorong 1, W: Masuk Studio Seni, Kanan ke Kampus)"; break;
-            case KEDAI_KOPI: locationHint = "Lokasi: Kedai Kopi (Kiri ke Jalan Danau, Kanan ke Halaman Kost)"; break;
-            case KAMPUS: locationHint = "Lokasi: Kampus Utama (Kiri ke Lorong 2, Kanan ke Studio Seni)"; break;
-            case STUDIO_SENI: locationHint = "Lokasi: Studio Seni (Kiri ke Kampus)"; break;
-            case JALAN_SETAPAK: locationHint = "Lokasi: Jalan Setapak (Kanan ke Danau)"; break;
-            case JALAN_DANAU: locationHint = "Lokasi: Jalan Danau (Kiri ke Jalan Setapak, Kanan ke Kedai Kopi)"; break;
-            case LUAR_RUANG_STUDIO: locationHint = "Lokasi: Luar Studio Musik (Kiri ke Jalan Setapak)"; break;
-            case DALAM_STUDIO: locationHint = "Lokasi: Dalam Studio Musik"; break;
-            case UKM_MUSIK: locationHint = "Lokasi: Ruang UKM Musik"; break;
-            default: locationHint = "Lokasi: Unknown"; break;
-        }
-        GlyphLayout locLayout = new GlyphLayout(font, locationHint);
-        float locW = locLayout.width + 30f;
-        float locH = font.getLineHeight() + 10f;
-        shapeRenderer.setColor(0.2f, 0.2f, 0.5f, 0.8f);
-        shapeRenderer.rect(20, VIRTUAL_HEIGHT - 20, locW, locH);
+        shapeRenderer.setColor(0.0f, 0.0f, 0.0f, 0.40f);
+        shapeRenderer.rect(cardStartX + 3f, locCardY - 3f, cardW, locCardH);
+        shapeRenderer.rect(cardStartX + 3f, questCardY - 3f, cardW, questCardH);
+
+        // 2. Card 1 Background (Rich Blue Gradient)
+        shapeRenderer.rect(cardStartX, locCardY, cardW, locCardH,
+            new Color(0.04f, 0.07f, 0.16f, 0.92f), new Color(0.04f, 0.07f, 0.16f, 0.92f),
+            new Color(0.08f, 0.14f, 0.28f, 0.88f), new Color(0.08f, 0.14f, 0.28f, 0.88f));
+
+        // Card 1 Left Accent Bar & Top Glow Strip
+        shapeRenderer.setColor(0.2f, 0.65f, 1.0f, 0.95f);
+        shapeRenderer.rect(cardStartX, locCardY, stripeW, locCardH);
+        shapeRenderer.setColor(0.35f, 0.75f, 1.0f, 0.80f);
+        shapeRenderer.rect(cardStartX + stripeW, locCardY + locCardH - 2f, cardW - stripeW, 2f);
+
+        // Tag 1 Filled Pill Badge ("LOKASI")
+        float tag1X = cardStartX + stripeW + paddingX;
+        float tag1Y = locCardY + locCardH - paddingY - lineHeight;
+        shapeRenderer.setColor(0.12f, 0.42f, 0.88f, 0.90f);
+        shapeRenderer.rect(tag1X, tag1Y - 2f, tag1W, lineHeight + 4f);
+
+        // 3. Card 2 Background (Rich Warm Amber Gradient)
+        shapeRenderer.rect(cardStartX, questCardY, cardW, questCardH,
+            new Color(0.08f, 0.07f, 0.04f, 0.92f), new Color(0.08f, 0.07f, 0.04f, 0.92f),
+            new Color(0.16f, 0.13f, 0.06f, 0.88f), new Color(0.16f, 0.13f, 0.06f, 0.88f));
+
+        // Card 2 Left Accent Bar & Top Glow Strip
+        shapeRenderer.setColor(1.0f, 0.75f, 0.20f, 0.95f);
+        shapeRenderer.rect(cardStartX, questCardY, stripeW, questCardH);
+        shapeRenderer.setColor(1.0f, 0.85f, 0.40f, 0.80f);
+        shapeRenderer.rect(cardStartX + stripeW, questCardY + questCardH - 2f, cardW - stripeW, 2f);
+
+        // Tag 2 Solid Amber Pill Badge ("OBJEKTIF")
+        float tag2X = cardStartX + stripeW + paddingX;
+        float tag2Y = questCardY + questCardH - paddingY - lineHeight;
+        shapeRenderer.setColor(1.0f, 0.75f, 0.20f, 0.95f);
+        shapeRenderer.rect(tag2X, tag2Y - 2f, tag2W, lineHeight + 4f);
         shapeRenderer.end();
+
+        // Outlines & Borders
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        // Card 1 Borders & Tag 1 Outer Frame
+        shapeRenderer.setColor(0.25f, 0.50f, 0.85f, 0.6f);
+        shapeRenderer.rect(cardStartX, locCardY, cardW, locCardH);
+        shapeRenderer.setColor(0.40f, 0.80f, 1.0f, 0.85f);
+        shapeRenderer.rect(tag1X, tag1Y - 2f, tag1W, lineHeight + 4f);
+
+        if (!locSub.isEmpty()) {
+            float divY = locCardY + paddingY + lineHeight + 3f;
+            shapeRenderer.setColor(0.2f, 0.4f, 0.7f, 0.35f);
+            shapeRenderer.line(tag1X, divY, cardStartX + cardW - paddingX, divY);
+        }
+
+        // Card 2 Borders & Tag 2 Outer Frame
+        shapeRenderer.setColor(0.75f, 0.55f, 0.20f, 0.6f);
+        shapeRenderer.rect(cardStartX, questCardY, cardW, questCardH);
+        shapeRenderer.setColor(1.0f, 0.85f, 0.40f, 0.9f);
+        shapeRenderer.rect(tag2X, tag2Y - 2f, tag2W, lineHeight + 4f);
+        shapeRenderer.end();
+
         Gdx.gl.glDisable(GL20.GL_BLEND);
         batch.begin();
 
+        // Card 1 Text
         font.setColor(Color.WHITE);
-        font.draw(batch, locationHint, 35, VIRTUAL_HEIGHT - 20 + locH/2 + font.getLineHeight()/4);
-        
-        font.setColor(Color.GOLD);
-        font.draw(batch, questText, 40, VIRTUAL_HEIGHT - textH/2 - 20 + font.getLineHeight()/4);
+        font.draw(batch, tag1Text, tag1X + 4f, tag1Y + lineHeight - 1f);
+
+        font.setColor(new Color(0.92f, 0.97f, 1.0f, 1.0f));
+        font.draw(batch, locName, tag1X + tag1W + 10f, tag1Y + lineHeight - 1f);
+
+        if (!locSub.isEmpty()) {
+            font.setColor(new Color(0.68f, 0.84f, 0.96f, 0.90f));
+            font.draw(batch, locSub, tag1X, locCardY + paddingY + lineHeight - 1f);
+        }
+
+        // Card 2 Text (Solid Gold Tag + Dark text contrast!)
+        font.setColor(new Color(0.08f, 0.06f, 0.02f, 1.0f));
+        font.draw(batch, tag2Text, tag2X + 4f, tag2Y + lineHeight - 1f);
+
+        font.setColor(new Color(1.0f, 0.90f, 0.50f, 1.0f));
+        font.draw(batch, questDetail, tag2X + tag2W + 10f, tag2Y + lineHeight - 1f);
 
         // Interaction prompts — show when near a hotspot
 
@@ -2447,8 +2603,8 @@ public class GameplayScreen implements Screen, InputProcessor {
                 nearClara = false;
                 rhythmMusic = Gdx.audio.newMusic(Gdx.files.internal("music/cover seandainya.mp3"));
                 rhythmMusic.setVolume(SettingsManager.getVolume());
-                rhythmGame.start(rhythmMusic);
-            } else if (nextId.equals("START_BAND_RHYTHM_GAME") || nextId.equals("START_CONCERT_RHYTHM_GAME")) {
+                rhythmGame.start(rhythmMusic, "LATIHAN GITAR - \"SEANDAINYA - VIERRA\"");
+            } else if (nextId.equals("START_BAND_RHYTHM_GAME")) {
                 rhythmFromBandPractice = true;
                 rhythmFromGuitarPractice = false;
                 state = GameplayState.RHYTHM_STATE;
@@ -2456,7 +2612,16 @@ public class GameplayScreen implements Screen, InputProcessor {
                 nearClara = false;
                 rhythmMusic = Gdx.audio.newMusic(Gdx.files.internal("music/Tatap_Esok.mp3"));
                 rhythmMusic.setVolume(SettingsManager.getVolume());
-                rhythmGame.start(rhythmMusic);
+                rhythmGame.start(rhythmMusic, "LATIHAN BAND - \"TATAP ESOK\"");
+            } else if (nextId.equals("START_CONCERT_RHYTHM_GAME")) {
+                rhythmFromBandPractice = true;
+                rhythmFromGuitarPractice = false;
+                state = GameplayState.RHYTHM_STATE;
+                nearBed   = false;
+                nearClara = false;
+                rhythmMusic = Gdx.audio.newMusic(Gdx.files.internal("music/Tatap_Esok.mp3"));
+                rhythmMusic.setVolume(SettingsManager.getVolume());
+                rhythmGame.start(rhythmMusic, "PANGGUNG ECHO SUMMER - \"TATAP ESOK\"");
             } else {
                 loadNode(nextId);
             }
@@ -2497,14 +2662,14 @@ public class GameplayScreen implements Screen, InputProcessor {
                     gameState.raniaRel  += 2;
                     gameState.sherlyRel += 2;
                     if ("CHAPTER_4".equals(gameState.chapter) || (currentNode != null && currentNode.nodeId.startsWith("CH4_"))) {
-                        loadNode("CH4_STRING_SNAP");
+                        loadNode("CH4_CONCERT_SUCCESS");
                     } else if ("CHAPTER_2".equals(gameState.chapter) || (currentNode != null && currentNode.nodeId.startsWith("CH2_"))) {
                         loadNode("CH2_END");
                     } else {
                         loadNode("BAND_PRACTICE_END");
                     }
                 } else {
-                    loadNode("CH4_STRING_SNAP");
+                    loadNode("CH4_CONCERT_SUCCESS");
                 }
             }
         }
@@ -2548,32 +2713,37 @@ public class GameplayScreen implements Screen, InputProcessor {
         }
 
         float badgeX = VIRTUAL_WIDTH - badgeW - 20f;
-        float badgeY = VIRTUAL_HEIGHT - badgeH - 20f;
+        float badgeY = VIRTUAL_HEIGHT - 15f - badgeH;
+        float stripeW = 4f;
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
         shape.begin(ShapeRenderer.ShapeType.Filled);
-        shape.setColor(new Color(0.02f, 0.05f, 0.12f, 0.8f));
+        shape.setColor(new Color(0.05f, 0.08f, 0.16f, 0.85f));
         shape.rect(badgeX, badgeY, badgeW, badgeH);
+
+        shape.setColor(new Color(0.2f, 0.65f, 1.0f, 0.95f));
+        shape.rect(badgeX, badgeY, stripeW, badgeH);
         shape.end();
 
         shape.begin(ShapeRenderer.ShapeType.Line);
-        shape.setColor(new Color(0.2f, 0.4f, 0.8f, 0.7f));
+        shape.setColor(new Color(0.2f, 0.45f, 0.75f, 0.6f));
         shape.rect(badgeX, badgeY, badgeW, badgeH);
         shape.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
 
         batch.begin();
+        float textStartX = badgeX + stripeW + 12f;
         font.setColor(Color.YELLOW);
-        font.draw(batch, "📅 Sisa Hari: " + remainingDays, badgeX + 15f, badgeY + badgeH - 15f);
+        font.draw(batch, "📅 Sisa Hari: " + remainingDays, textStartX, badgeY + badgeH - 15f);
 
         font.setColor(Color.WHITE);
-        font.draw(batch, "🕒 Waktu: " + timeOfDay, badgeX + 15f, badgeY + badgeH - 42f);
+        font.draw(batch, "🕒 Waktu: " + timeOfDay, textStartX, badgeY + badgeH - 42f);
 
         if (showMoney) {
             font.setColor(Color.GREEN);
-            font.draw(batch, "🪙 Uang: Rp" + gameState.money, badgeX + 15f, badgeY + badgeH - 69f);
+            font.draw(batch, "🪙 Uang: Rp" + gameState.money, textStartX, badgeY + badgeH - 69f);
             font.setColor(Color.WHITE);
-            font.draw(batch, "🎸 Kreativitas: " + gameState.creativity, badgeX + 15f, badgeY + badgeH - 90f);
+            font.draw(batch, "🎸 Kreativitas: " + gameState.creativity, textStartX, badgeY + badgeH - 90f);
         }
         
         if (state == GameplayState.EXPLORATION_STATE) {
@@ -2666,6 +2836,11 @@ public class GameplayScreen implements Screen, InputProcessor {
             if (currentNode != null && (currentNode.nodeId.startsWith("CREDITS_") || currentNode.nodeId.equals("GAME_OVER"))) {
                 if (keycode == Input.Keys.SPACE || keycode == Input.Keys.ENTER) {
                     if (creditsScrollY >= VIRTUAL_HEIGHT / 2f) {
+                        if (creditsMusic != null) {
+                            if (creditsMusic.isPlaying()) creditsMusic.stop();
+                            creditsMusic.dispose();
+                            creditsMusic = null;
+                        }
                         game.setScreen(new MainMenuScreen(game));
                         return true;
                     }
@@ -3187,8 +3362,36 @@ public class GameplayScreen implements Screen, InputProcessor {
     }
 
     private void renderMovieCredits(float delta) {
+        if (creditsMusic == null) {
+            try {
+                if (Gdx.files.internal("music/Gravits.mp3").exists()) {
+                    creditsMusic = Gdx.audio.newMusic(Gdx.files.internal("music/Gravits.mp3"));
+                    creditsMusic.setLooping(false);
+                    creditsMusic.setVolume(SettingsManager.getVolume());
+                    creditsMusic.play();
+                }
+            } catch (Exception e) {
+                Gdx.app.error("GameplayScreen", "Error playing Gravits.mp3 credits music: " + e.getMessage());
+            }
+        }
         loadCreditsJson();
-        creditsScrollY += delta * 55f;
+        
+        // Auto Scroll synced to Gravits.mp3 music duration (~4m35s)
+        float contentHeight = 140f;
+        for (CreditSection sec : creditsList) {
+            contentHeight += 38f + (sec.names != null ? sec.names.size : 0) * 32f + 48f;
+        }
+        contentHeight += 250f;
+        float totalDistance = contentHeight + 400f;
+
+        if (creditsMusic != null && creditsMusic.isPlaying()) {
+            float pos = creditsMusic.getPosition();
+            float duration = 275.0f; // Gravits.mp3 length
+            float progress = Math.min(1.0f, Math.max(0.0f, pos / duration));
+            creditsScrollY = -100f + progress * totalDistance;
+        } else {
+            creditsScrollY += delta * 7.5f;
+        }
 
         SpriteBatch batch = game.getBatch();
 
@@ -3209,12 +3412,12 @@ public class GameplayScreen implements Screen, InputProcessor {
         font.getData().setScale(2.2f);
         font.draw(batch, creditsTitle, 0f, curY, VIRTUAL_WIDTH, Align.center, false);
         font.getData().setScale(1.0f);
-        curY -= 50f;
+        curY -= 55f;
 
         // Subtitle
         font.setColor(Color.LIGHT_GRAY);
         font.draw(batch, creditsSubtitle, 0f, curY, VIRTUAL_WIDTH, Align.center, false);
-        curY -= 80f;
+        curY -= 85f;
 
         // Credit Sections
         for (CreditSection sec : creditsList) {
@@ -3222,14 +3425,14 @@ public class GameplayScreen implements Screen, InputProcessor {
             font.getData().setScale(1.2f);
             font.draw(batch, sec.header, 0f, curY, VIRTUAL_WIDTH, Align.center, false);
             font.getData().setScale(1.0f);
-            curY -= 35f;
+            curY -= 38f;
 
             font.setColor(Color.WHITE);
             for (String name : sec.names) {
                 font.draw(batch, name, 0f, curY, VIRTUAL_WIDTH, Align.center, false);
-                curY -= 30f;
+                curY -= 32f;
             }
-            curY -= 40f;
+            curY -= 48f;
         }
 
         // Closing Quote
@@ -3605,6 +3808,12 @@ public class GameplayScreen implements Screen, InputProcessor {
             case 4: // Fade In new screen (0.5s)
                 transAlpha = Math.min(1.0f, transTime / 0.5f);
                 if (transTime >= 0.5f) {
+                    if (transToDay != -1) {
+                        gameState.day = transToDay;
+                        remainingDays = gameState.day;
+                        syncChapterWithDay();
+                        updateTimeOfDay();
+                    }
                     state = transNextState;
                     loadNode(transNextNode);
                     if (state == GameplayState.EXPLORATION_STATE) {
@@ -3724,6 +3933,8 @@ public class GameplayScreen implements Screen, InputProcessor {
 
     
     private String getCurrentQuest() {
+        if (gameState == null) return "";
+        if (gameState.day <= 0) gameState.day = 30;
         if (gameState.day == 30) return "🎯 Objektif (Hari 30): Temui Clara di Ruang UKM Musik.";
         if (gameState.day == 29) return "🎯 Objektif (Hari 29): Temui Clara di Ruang UKM Musik.";
         if (gameState.day == 28) {
@@ -3747,7 +3958,7 @@ public class GameplayScreen implements Screen, InputProcessor {
                 return "🎯 Objektif (Hari 24): Temui Rania di Studio Seni Kampus.";
             }
         }
-        if (gameState.day == 20) return "🎯 Objektif (Hari 20): Latihan pertama dengan band (Di Ruang Studio).";
+        if (gameState.day == 20 || gameState.day == 19) return "🎯 Objektif (Hari " + gameState.day + "): Latihan pertama dengan band (Di Ruang Studio).";
         if (gameState.day == 18) return "🎯 Objektif (Hari 18): Garap lagu bersama band (Di Ruang Studio).";
         if (gameState.day == 15) return "🎯 Objektif (Hari 15): Latihan intensif bersama band (Di Ruang Studio).";
         if (gameState.day == 12) return "🎯 Objektif (Hari 12): Gladi bersih bersama band (Di Ruang Studio).";
