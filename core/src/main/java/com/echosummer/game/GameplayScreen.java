@@ -217,6 +217,9 @@ public class GameplayScreen implements Screen, InputProcessor {
     private RhythmGame rhythmGame;
     private Music rhythmMusic;
     private Music creditsMusic;
+    private boolean rhythmFromGuitarPractice = false;
+    private boolean rhythmFromBandPractice = false;
+
     // Data Structure Core Engine Members
     private final CustomStack<DialogueNode> dialogueHistoryStack = new CustomStack<>();
     private final LocationGraph<ExplorationZone> mapNavigationGraph = new LocationGraph<>();
@@ -576,8 +579,8 @@ public class GameplayScreen implements Screen, InputProcessor {
         initMapNavigationGraph();
         storyNodeHashTable = StoryData.buildStoryHashTable(
             gameState,
-            new Runnable() { @Override public void run() { startRhythmGame(); } },
-            new Runnable() { @Override public void run() { triggerEnding(); } }
+            new Runnable() { @Override public void run() { loadNode("START_CONCERT_RHYTHM_GAME"); } },
+            new Runnable() { @Override public void run() { loadNode("END_TRUE_1"); } }
         );
         storyDecisionTree = StoryData.buildStoryTree(storyNodeHashTable);
 
