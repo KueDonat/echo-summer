@@ -217,7 +217,6 @@ public class GameplayScreen implements Screen, InputProcessor {
     private RhythmGame rhythmGame;
     private Music rhythmMusic;
     private Music creditsMusic;
-    private boolean rhythmFromGuitarPractice = false;
     private boolean rhythmFromBandPractice = false;
 
     // Data Structure Core Engine Members
@@ -231,21 +230,20 @@ public class GameplayScreen implements Screen, InputProcessor {
         for (ExplorationZone zone : ExplorationZone.values()) {
             mapNavigationGraph.addVertex(zone);
         }
-        mapNavigationGraph.addEdge(ExplorationZone.KOST, ExplorationZone.KAMAR_KOST);
-        mapNavigationGraph.addEdge(ExplorationZone.KOST, ExplorationZone.JALAN_RAYA);
-        mapNavigationGraph.addEdge(ExplorationZone.JALAN_RAYA, ExplorationZone.GERBANG_KAMPUS);
-        mapNavigationGraph.addEdge(ExplorationZone.GERBANG_KAMPUS, ExplorationZone.KANTIN);
-        mapNavigationGraph.addEdge(ExplorationZone.GERBANG_KAMPUS, ExplorationZone.TAMAN_KAMPUS);
-        mapNavigationGraph.addEdge(ExplorationZone.TAMAN_KAMPUS, ExplorationZone.GEDUNG_UTAMA);
-        mapNavigationGraph.addEdge(ExplorationZone.GEDUNG_UTAMA, ExplorationZone.UKM_MUSIK);
-        mapNavigationGraph.addEdge(ExplorationZone.UKM_MUSIK, ExplorationZone.STUDIO);
-        mapNavigationGraph.addEdge(ExplorationZone.STUDIO, ExplorationZone.DALAM_STUDIO);
-        mapNavigationGraph.addEdge(ExplorationZone.GEDUNG_UTAMA, ExplorationZone.STUDIO_SENI);
-        mapNavigationGraph.addEdge(ExplorationZone.JALAN_RAYA, ExplorationZone.KEDAI_KOPI);
-        mapNavigationGraph.addEdge(ExplorationZone.GERBANG_KAMPUS, ExplorationZone.TOKO_MUSIK);
-        mapNavigationGraph.addEdge(ExplorationZone.JALAN_RAYA, ExplorationZone.HALTE_BUS);
-        mapNavigationGraph.addEdge(ExplorationZone.HALTE_BUS, ExplorationZone.ALUN_ALUN);
-        mapNavigationGraph.addEdge(ExplorationZone.ALUN_ALUN, ExplorationZone.ROOFTOP);
+        mapNavigationGraph.addEdge(ExplorationZone.KOST, ExplorationZone.KOST_OUTSIDE);
+        mapNavigationGraph.addEdge(ExplorationZone.KOST_OUTSIDE, ExplorationZone.WARKOP);
+        mapNavigationGraph.addEdge(ExplorationZone.WARKOP, ExplorationZone.KAMPUS);
+        mapNavigationGraph.addEdge(ExplorationZone.KAMPUS, ExplorationZone.TAMAN_KAMPUS);
+        mapNavigationGraph.addEdge(ExplorationZone.TAMAN_KAMPUS, ExplorationZone.KANTIN);
+        mapNavigationGraph.addEdge(ExplorationZone.KANTIN, ExplorationZone.LORONG_1);
+        mapNavigationGraph.addEdge(ExplorationZone.LORONG_1, ExplorationZone.LORONG_2);
+        mapNavigationGraph.addEdge(ExplorationZone.LORONG_2, ExplorationZone.LUAR_RUANG_STUDIO);
+        mapNavigationGraph.addEdge(ExplorationZone.LUAR_RUANG_STUDIO, ExplorationZone.DALAM_STUDIO);
+        mapNavigationGraph.addEdge(ExplorationZone.DALAM_STUDIO, ExplorationZone.UKM_MUSIK);
+        mapNavigationGraph.addEdge(ExplorationZone.KAMPUS, ExplorationZone.STUDIO_SENI);
+        mapNavigationGraph.addEdge(ExplorationZone.WARKOP, ExplorationZone.KEDAI_KOPI);
+        mapNavigationGraph.addEdge(ExplorationZone.KAMPUS, ExplorationZone.JALAN_SETAPAK);
+        mapNavigationGraph.addEdge(ExplorationZone.JALAN_SETAPAK, ExplorationZone.JALAN_DANAU);
     }
 
     private boolean isPracticeDay(int day) {
