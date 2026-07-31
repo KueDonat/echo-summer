@@ -219,6 +219,11 @@ public class GameplayScreen implements Screen, InputProcessor {
     private Music creditsMusic;
     private boolean rhythmFromBandPractice = false;
 
+    // Data Structure Interactive UI Overlay States
+    private boolean isDialogueHistoryActive = false;
+    private boolean isMapGraphActive = false;
+    private boolean isInventoryActive = false;
+
     // Data Structure Core Engine Members
     private final CustomStack<DialogueNode> dialogueHistoryStack = new CustomStack<>();
     private final LocationGraph<ExplorationZone> mapNavigationGraph = new LocationGraph<>();
@@ -2799,10 +2804,12 @@ public class GameplayScreen implements Screen, InputProcessor {
         
         if (state == GameplayState.EXPLORATION_STATE) {
             font.setColor(Color.CYAN);
-            font.draw(batch, "[A]/[D] atau [Kiri]/[Kanan] \uD83D\uDEB6 Jalan", 20f, 110f);
-            font.draw(batch, "[SPACE] \uD83D\uDCAC Interaksi", 20f, 80f);
-            font.draw(batch, "[TAB] \uD83D\uDCF1 Buka HP", 20f, 50f);
-            font.draw(batch, "[ESC] \u23F8 Pause Menu", 20f, 20f);
+            font.draw(batch, "[A]/[D] Jalan | [SPACE] Interaksi | [TAB] HP | [ESC] Pause", 20f, 80f);
+            font.draw(batch, "[M] Campus Map Graph | [I] Inventory (Linked List)", 20f, 50f);
+            font.draw(batch, "[H] History Stack Log | [BACKSPACE] Backtrack Dialogue", 20f, 20f);
+        } else if (state == GameplayState.DIALOGUE_STATE) {
+            font.setColor(Color.YELLOW);
+            font.draw(batch, "[H] History Stack Log | [BACKSPACE] Backtrack Dialogue", 20f, 20f);
         }
 
         if (autoSaveToastTimer > 0) {
@@ -2810,6 +2817,187 @@ public class GameplayScreen implements Screen, InputProcessor {
             font.draw(batch, "💾 Auto Saved", 20f, VIRTUAL_HEIGHT - 30f);
         }
 
+        batch.end();
+
+        // Data Structure Interactive UI Overlays
+        renderDialogueHistoryStack();
+        renderMapGraphOverlay();
+        renderLinkedListInventory();
+    }
+
+    private void backtrackDialogue() {
+        if (!dialogueHistoryStack.isEmpty()) {
+            DialogueNode prev = dialogueHistoryStack.pop();
+            if (prev != null && prev.nodeId != null) {
+                currentNode = prev;
+                gameState.dialogueNodeId = prev.nodeId;
+                typedText = prev.text != null ? prev.text : "";
+                isDialogueFinished = true;
+            }
+        }
+    }
+
+    private void renderDialogueHistoryStack() {
+        if (!isDialogueHistoryActive) return;
+
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(new Color(0.02f, 0.04f, 0.1f, 0.92f));
+        shapeRenderer.rect(100f, 50f, VIRTUAL_WIDTH - 200f, VIRTUAL_HEIGHT - 100f);
+        shapeRenderer.end();
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(Color.CYAN);
+        shapeRenderer.rect(100f, 50f, VIRTUAL_WIDTH - 200f, VIRTUAL_HEIGHT - 100f);
+        shapeRenderer.end();
+        Gdx.gl.glDisable(GL20.GL_BLEND);
+
+        SpriteBatch batch = game.getBatch();
+        batch.begin();
+        font.setColor(Color.CYAN);
+        font.getData().setScale(1.2f);
+        font.draw(batch, "📚 DIALOGUE HISTORY LOG (STACK LIFO)", 130f, VIRTUAL_HEIGHT - 70f);
+        font.getData().setScale(0.9f);
+        font.setColor(Color.LIGHT_GRAY);
+        font.draw(batch, "Tekan [ H ] untuk menutup | Tekan [ BACKSPACE ] untuk Rewind/Undo", 130f, VIRTUAL_HEIGHT - 105f);
+
+        int count = 0;
+        float startY = VIRTUAL_HEIGHT - 145f;
+        for (DialogueNode node : dialogueHistoryStack) {
+            if (node == null || count >= 8) break;
+            font.setColor(Color.GOLD);
+            String speaker = node.speakerName != null ? node.speakerName : "Narasi";
+            font.draw(batch, "[" + (count + 1) + "] " + speaker + ":", 130f, startY);
+
+            font.setColor(Color.WHITE);
+            String textPrev = node.text != null ? node.text.replace("\n", " ") : "...";
+            if (textPrev.length() > 65) textPrev = textPrev.substring(0, 65) + "...";
+            font.draw(batch, textPrev, 260f, startY);
+
+            startY -= 55f;
+            count++;
+        }
+
+        if (count == 0) {
+            font.setColor(Color.GRAY);
+            font.draw(batch, "(Belum ada riwayat dialog tersimpan di Stack)", 130f, startY);
+        }
+
+        font.getData().setScale(1.0f);
+        batch.end();
+    }
+
+    private void renderMapGraphOverlay() {
+        if (!isMapGraphActive) return;
+
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(new Color(0.04f, 0.06f, 0.12f, 0.94f));
+        shapeRenderer.rect(80f, 40f, VIRTUAL_WIDTH - 160f, VIRTUAL_HEIGHT - 80f);
+        shapeRenderer.end();
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(Color.GREEN);
+        shapeRenderer.rect(80f, 40f, VIRTUAL_WIDTH - 160f, VIRTUAL_HEIGHT - 80f);
+        shapeRenderer.end();
+        Gdx.gl.glDisable(GL20.GL_BLEND);
+
+        SpriteBatch batch = game.getBatch();
+        batch.begin();
+        font.setColor(Color.GREEN);
+        font.getData().setScale(1.2f);
+        font.draw(batch, "🗺️ CAMPUS LOCATION GRAPH & NAVIGATOR", 110f, VIRTUAL_HEIGHT - 65f);
+        font.getData().setScale(0.9f);
+        font.setColor(Color.LIGHT_GRAY);
+        font.draw(batch, "Tekan [ M ] untuk menutup | Visualisasi Graph Simpul & Jalur Peta", 110f, VIRTUAL_HEIGHT - 98f);
+
+        // Render shortest path BFS result
+        java.util.List<ExplorationZone> shortestPath = mapNavigationGraph.findShortestPathBFS(currentZone, ExplorationZone.UKM_MUSIK);
+        font.setColor(Color.GOLD);
+        font.draw(batch, "📍 Lokasi Saat Ini: " + currentZone.name(), 110f, VIRTUAL_HEIGHT - 135f);
+        
+        StringBuilder sbPath = new StringBuilder("🚩 Rute Terpendek ke UKM Musik (BFS Graph): ");
+        if (shortestPath != null) {
+            for (int i = 0; i < shortestPath.size(); i++) {
+                sbPath.append(shortestPath.get(i).name());
+                if (i < shortestPath.size() - 1) sbPath.append(" ➔ ");
+            }
+        }
+        font.setColor(Color.CYAN);
+        font.draw(batch, sbPath.toString(), 110f, VIRTUAL_HEIGHT - 165f);
+
+        // Render vertices list
+        font.setColor(Color.WHITE);
+        font.draw(batch, "🌐 SIMPUL LOKASI (VERTICES & EDGES GRAPH):", 110f, VIRTUAL_HEIGHT - 210f);
+
+        float nodeY = VIRTUAL_HEIGHT - 245f;
+        int idx = 1;
+        for (ExplorationZone zone : ExplorationZone.values()) {
+            if (idx > 7) break;
+            font.setColor(zone == currentZone ? Color.GOLD : Color.LIGHT_GRAY);
+            java.util.List<ExplorationZone> neighbors = mapNavigationGraph.getNeighbors(zone);
+            String neighborStr = neighbors != null ? neighbors.toString() : "[]";
+            font.draw(batch, idx + ". " + zone.name() + " ↔ Neighbors: " + neighborStr, 110f, nodeY);
+            nodeY -= 45f;
+            idx++;
+        }
+
+        font.getData().setScale(1.0f);
+        batch.end();
+    }
+
+    private void renderLinkedListInventory() {
+        if (!isInventoryActive) return;
+
+        Gdx.gl.glEnable(GL20.GL_BLEND);
+        shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(new Color(0.08f, 0.04f, 0.12f, 0.94f));
+        shapeRenderer.rect(120f, 60f, VIRTUAL_WIDTH - 240f, VIRTUAL_HEIGHT - 120f);
+        shapeRenderer.end();
+
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(Color.GOLD);
+        shapeRenderer.rect(120f, 60f, VIRTUAL_WIDTH - 240f, VIRTUAL_HEIGHT - 120f);
+        shapeRenderer.end();
+        Gdx.gl.glDisable(GL20.GL_BLEND);
+
+        SpriteBatch batch = game.getBatch();
+        batch.begin();
+        font.setColor(Color.GOLD);
+        font.getData().setScale(1.2f);
+        font.draw(batch, "🎒 INVENTORY & QUEST LOG (LINKED LIST)", 150f, VIRTUAL_HEIGHT - 85f);
+        font.getData().setScale(0.9f);
+        font.setColor(Color.LIGHT_GRAY);
+        font.draw(batch, "Tekan [ I ] untuk menutup | Iterasi Doubly Linked List activeQuestList", 150f, VIRTUAL_HEIGHT - 120f);
+
+        font.setColor(Color.WHITE);
+        font.draw(batch, "📜 OBJEKTIF / QUEST AKTIF:", 150f, VIRTUAL_HEIGHT - 165f);
+        font.setColor(Color.YELLOW);
+        int qIdx = 1;
+        for (String quest : activeQuestList) {
+            font.draw(batch, "  " + qIdx + ". " + quest, 150f, VIRTUAL_HEIGHT - 195f - (qIdx - 1) * 35f);
+            qIdx++;
+        }
+
+        font.setColor(Color.WHITE);
+        font.draw(batch, "🎸 ITEM BAND & INVENTARIS:", 150f, VIRTUAL_HEIGHT - 270f);
+        
+        String[] bandItems = {
+            "Gitar Akustik Fender (Kondisi Senar: Baiki)",
+            "Buku Catatan Lirik & Melodi \"Tatap Esok\"",
+            "Pik Gitar Nyaman (Bonus Aksesori Band)",
+            "Kopi Susu Warmindo Kost (Item Energi)"
+        };
+
+        for (int i = 0; i < bandItems.length; i++) {
+            font.setColor(Color.LIGHT_GRAY);
+            font.draw(batch, "  • " + bandItems[i], 150f, VIRTUAL_HEIGHT - 305f - i * 35f);
+        }
+
+        font.getData().setScale(1.0f);
         batch.end();
     }
 
@@ -2843,6 +3031,12 @@ public class GameplayScreen implements Screen, InputProcessor {
 
         // 2. Pause Menu (ESCAPE)
         if (keycode == Input.Keys.ESCAPE) {
+            if (isDialogueHistoryActive || isMapGraphActive || isInventoryActive) {
+                isDialogueHistoryActive = false;
+                isMapGraphActive = false;
+                isInventoryActive = false;
+                return true;
+            }
             if (state == GameplayState.RHYTHM_STATE && rhythmGame.isFailed()) {
                 rhythmGame.handleKeyPress(keycode);
                 return true;
@@ -2862,6 +3056,24 @@ public class GameplayScreen implements Screen, InputProcessor {
                     rhythmGame.resume();
                 }
             }
+            return true;
+        }
+
+        // Data Structure Interactive Keyboard Triggers
+        if (keycode == Input.Keys.H) {
+            isDialogueHistoryActive = !isDialogueHistoryActive;
+            return true;
+        }
+        if (keycode == Input.Keys.M) {
+            isMapGraphActive = !isMapGraphActive;
+            return true;
+        }
+        if (keycode == Input.Keys.I) {
+            isInventoryActive = !isInventoryActive;
+            return true;
+        }
+        if (keycode == Input.Keys.BACKSPACE && state == GameplayState.DIALOGUE_STATE) {
+            backtrackDialogue();
             return true;
         }
 

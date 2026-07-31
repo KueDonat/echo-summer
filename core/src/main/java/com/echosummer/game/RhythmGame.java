@@ -363,6 +363,16 @@ public class RhythmGame {
             return;
         }
 
+        // Dequeue processed FIFO notes from CustomQueue
+        while (!noteQueue.isEmpty()) {
+            Note peek = noteQueue.peek();
+            if (peek != null && (peek.hit || peek.missed || (timeElapsed - peek.targetTime > 0.5f))) {
+                noteQueue.dequeue();
+            } else {
+                break;
+            }
+        }
+
         // Track missed notes that pass the hit zone
         for (int i = 0; i < notes.size; i++) {
             Note n = notes.get(i);
@@ -698,6 +708,17 @@ public class RhythmGame {
             String timeStr = String.format("🎵 Waktu: %02d:%02d / %02d:%02d", curSec / 60, curSec % 60, totalSec / 60, totalSec % 60);
             font.setColor(Color.GOLD);
             font.draw(batch, timeStr, width / 2f - 200f, height - 95, 400, 1, false);
+
+            // Draw Data Structure Queue HUD
+            font.setColor(Color.CYAN);
+            font.getData().setScale(0.85f);
+            String queueStr = "[QUEUE FIFO] Sisa Note: " + noteQueue.size();
+            if (!noteQueue.isEmpty()) {
+                Note peekNote = noteQueue.peek();
+                queueStr += " | Next Note: [" + laneKeys[peekNote.lane] + "]";
+            }
+            font.draw(batch, queueStr, width / 2f - 250f, height - 120f, 500, Align.center, false);
+            font.getData().setScale(1.0f);
 
             font.setColor(Color.LIGHT_GRAY);
             font.draw(batch, "HP", startX + totalWidth + 20f, hitZoneY - 10f, 26f, 1, false);
