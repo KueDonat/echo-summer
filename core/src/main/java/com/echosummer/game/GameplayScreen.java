@@ -2787,6 +2787,10 @@ public class GameplayScreen implements Screen, InputProcessor {
         shape.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
 
+        if (batch.isDrawing()) {
+            batch.end();
+        }
+
         batch.begin();
         float textStartX = badgeX + stripeW + 12f;
         font.setColor(Color.YELLOW);
@@ -2801,7 +2805,8 @@ public class GameplayScreen implements Screen, InputProcessor {
             font.setColor(Color.WHITE);
             font.draw(batch, "🎸 Kreativitas: " + gameState.creativity, textStartX, badgeY + badgeH - 90f);
         }
-        
+        batch.end();
+
         if (state == GameplayState.EXPLORATION_STATE || state == GameplayState.DIALOGUE_STATE) {
             float barW = 1020f;
             float barH = 34f;
@@ -2829,14 +2834,15 @@ public class GameplayScreen implements Screen, InputProcessor {
                 font.draw(batch, "[SPACE / ENTER] Lanjut   •   [H] Riwayat Dialog   •   [BACKSPACE] Undo / Rewind Dialog", barX, barY + 23f, barW, Align.center, false);
             }
             font.getData().setScale(1.0f);
+            batch.end();
         }
 
         if (autoSaveToastTimer > 0) {
+            batch.begin();
             font.setColor(Color.LIME);
             font.draw(batch, "💾 Auto Saved", 20f, VIRTUAL_HEIGHT - 30f);
+            batch.end();
         }
-
-        batch.end();
 
         // Data Structure Interactive UI Overlays
         renderDialogueHistoryStack();
