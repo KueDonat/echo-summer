@@ -159,7 +159,7 @@
   {
     "nodeId": "CH1_INTRO",
     "speaker": "",
-    "text": "Raka duduk di Kantin Kampus dengan segelas es teh dan selembar kertas catatan target personel band...",
+    "text": "Raksha duduk di Kantin Kampus dengan segelas es teh dan selembar kertas catatan target personel band...",
     "background": "background/background_kantin.png",
     "nextId": "CH1_BAGAS_TALK"
   },
@@ -331,7 +331,7 @@
   {
     "nodeId": "FREE_DATE_CLARA_START",
     "speaker": "Clara",
-    "text": "Hai Raka! Hari ini gak ada jadwal latihan khusus. Mau luangin waktu bareng gue?",
+    "text": "Hai Raksha! Hari ini gak ada jadwal latihan khusus. Mau luangin waktu bareng gue?",
     "expression": "bahagia",
     "background": "background/background_taman_kampus.png",
     "choices": [
@@ -364,7 +364,7 @@
   {
     "nodeId": "FREE_DATE_CLARA_LAKE",
     "speaker": "Clara",
-    "text": "Angin di danau sore ini sejuk banget ya, Raka... Adem banget tempat ini buat ngobrolin ide lagu.",
+    "text": "Angin di danau sore ini sejuk banget ya, Raksha... Adem banget tempat ini buat ngobrolin ide lagu.",
     "expression": "bahagia",
     "background": "background/background_jalan_danau.png",
     "nextId": "FREE_DATE_CLARA_LAKE_2"
@@ -396,7 +396,7 @@
   {
     "nodeId": "FREE_DATE_CLARA_LAKE_5",
     "speaker": "Clara",
-    "text": "Ih Raka! Bikin orang salting aja... Tapi makasih ya udah selalu nemenin aku ❤️ (Hubungan Clara +2, Keberanian +1)",
+    "text": "Ih Raksha! Bikin orang salting aja... Tapi makasih ya udah selalu nemenin aku ❤️ (Hubungan Clara +2, Keberanian +1)",
     "expression": "malu",
     "background": "background/background_jalan_danau.png",
     "nextId": "FREE_DATE_CLARA_END"
@@ -420,7 +420,7 @@
   {
     "nodeId": "FREE_DATE_CLARA_COFFEE_3",
     "speaker": "Clara",
-    "text": "Rakaaa! Pipiku bisa merah nih kalau kamu ngomong gitu terus!",
+    "text": "Rakshaaa! Pipiku bisa merah nih kalau kamu ngomong gitu terus!",
     "expression": "malu",
     "background": "background/background_kedai_kopi.png",
     "nextId": "FREE_DATE_CLARA_COFFEE_4"
@@ -460,7 +460,7 @@
   {
     "nodeId": "FREE_DATE_CLARA_PARK_3",
     "speaker": "Clara",
-    "text": "Momen tenang ini makin berharga karena aku lewati bareng kamu, Raka.",
+    "text": "Momen tenang ini makin berharga karena aku lewati bareng kamu, Raksha.",
     "expression": "bahagia",
     "background": "background/background_taman_kampus.png",
     "nextId": "FREE_DATE_CLARA_PARK_4"
@@ -476,7 +476,7 @@
   {
     "nodeId": "FREE_DATE_CLARA_PARK_5",
     "speaker": "Clara",
-    "text": "Tetap di samping aku terus ya, Raka... Jangan pernah pergi. ❤️ (Hubungan Clara +2, Kesabaran +1)",
+    "text": "Tetap di samping aku terus ya, Raksha... Jangan pernah pergi. ❤️ (Hubungan Clara +2, Kesabaran +1)",
     "expression": "malu",
     "background": "background/background_taman_kampus.png",
     "nextId": "FREE_DATE_CLARA_END"
@@ -989,7 +989,7 @@
     "background": "background/background_dalam_studio.png",
     "choices": [
       {
-        "text": "Ikuti instruksi Raka (Tutup mata & resapi) (+2 Kreativitas, +1 Hubungan Semua)",
+        "text": "Ikuti instruksi Raksha (Tutup mata & resapi) (+2 Kreativitas, +1 Hubungan Semua)",
         "nextNodeId": "CH2_PRACTICE_SUCCESS",
         "action": {
           "creativity_add": 2,
@@ -1216,7 +1216,7 @@
   {
     "nodeId": "CH3_BUS_CHOICE",
     "speaker": "Clara",
-    "text": "Raka, jangan pernah menanggung beban itu sendirian. Ceritain ke aku... apa yang sebenarnya terjadi di masa lalu kamu?",
+    "text": "Raksha, jangan pernah menanggung beban itu sendirian. Ceritain ke aku... apa yang sebenarnya terjadi di masa lalu kamu?",
     "expression": "cemas",
     "background": "background/background_jalan_raya.png",
     "choices": [
@@ -1247,7 +1247,7 @@
   {
     "nodeId": "CH3_BUS_SIT_B",
     "speaker": "Clara",
-    "text": "Itu bukan salah kamu, Raka! Kamu itu gitaris yang luar biasa. Suara musik kamu jujur dan penuh perasaan. Aku percaya sama kamu... kami semua percaya!",
+    "text": "Itu bukan salah kamu, Raksha! Kamu itu gitaris yang luar biasa. Suara musik kamu jujur dan penuh perasaan. Aku percaya sama kamu... kami semua percaya!",
     "expression": "bahagia",
     "background": "background/background_jalan_raya.png",
     "nextId": "CH3_BUS_SIT_C"
@@ -1263,7 +1263,7 @@
   {
     "nodeId": "CH3_BUS_SIT_D",
     "speaker": "Clara",
-    "text": "Sama-sama Raka. Sekarang yuk kita kembali ke studio. Teman-teman udah nungguin kita!",
+    "text": "Sama-sama Raksha. Sekarang yuk kita kembali ke studio. Teman-teman udah nungguin kita!",
     "expression": "bahagia",
     "background": "background/background_jalan_raya.png",
     "nextId": "CH3_ALDO_5"
@@ -1324,7 +1324,7 @@
   {
     "nodeId": "CH3_FOCUS_CLARA_2",
     "speaker": "Clara",
-    "text": "Dan kami akan selalu berdiri di samping kamu, Raka.",
+    "text": "Dan kami akan selalu berdiri di samping kamu, Raksha.",
     "expression": "bahagia",
     "background": "background/background_dalam_studio.png",
     "nextId": "CH3_PRACTICE_3"
@@ -1434,7 +1434,7 @@
   {
     "nodeId": "CH4_CONCERT_SUCCESS_2",
     "speaker": "Clara",
-    "text": "Kita berhasil, Raka! Penampilan kita benar-benar menyatu dengan penonton!",
+    "text": "Kita berhasil, Raksha! Penampilan kita benar-benar menyatu dengan penonton!",
     "expression": "bahagia",
     "background": "background/background_kantin.png",
     "nextId": "END_TRUE_1"
@@ -1493,7 +1493,7 @@
   {
     "nodeId": "END_WORST_3",
     "speaker": "",
-    "text": "Raka keluar ruangan. Pintu menutup.\n\n\"Beberapa suara hilang selamanya.\"",
+    "text": "Raksha keluar ruangan. Pintu menutup.\n\n\"Beberapa suara hilang selamanya.\"",
     "background": "background/background_kamar_kost.png",
     "nextId": "CREDITS_START"
   },

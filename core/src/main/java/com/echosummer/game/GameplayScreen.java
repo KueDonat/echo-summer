@@ -302,7 +302,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         // Load custom typography fonts
         FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("NotoSans-Regular.ttf"));
         FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
-        
+
         parameter.size = 18;
         parameter.color = Color.WHITE;
         font = generator.generateFont(parameter);
@@ -424,12 +424,12 @@ public class GameplayScreen implements Screen, InputProcessor {
             syncChapterWithDay();
             remainingDays = gameState.day;
             updateTimeOfDay();
-            
+
             // Restore loaded state
             state = GameplayState.valueOf(gameState.gameplayState);
             currentZone = ExplorationZone.valueOf(gameState.currentZone);
             rakshaX = gameState.rakshaX;
-            
+
             // Sync background to loaded zone if in exploration
             if (state == GameplayState.EXPLORATION_STATE) {
                 switch (currentZone) {
@@ -641,7 +641,7 @@ public class GameplayScreen implements Screen, InputProcessor {
                 fromDay = gameState.day + 1;
                 toDay = gameState.day;
             }
-            
+
             // Map String to GameplayState
             GameplayState nextState = GameplayState.EXPLORATION_STATE;
             if ("DIALOGUE".equalsIgnoreCase(currentNode.transNextState)) {
@@ -649,14 +649,14 @@ public class GameplayScreen implements Screen, InputProcessor {
             } else if ("RHYTHM".equalsIgnoreCase(currentNode.transNextState)) {
                 nextState = GameplayState.RHYTHM_STATE;
             }
-            
+
             startCinematicTransition(
-                fromDay, 
-                toDay, 
-                currentNode.text, 
-                currentNode.transChapterTitle, 
-                currentNode.transChapterSubtitle, 
-                nextState, 
+                fromDay,
+                toDay,
+                currentNode.text,
+                currentNode.transChapterTitle,
+                currentNode.transChapterSubtitle,
+                nextState,
                 currentNode.transNextNodeId
             );
             return;
@@ -804,7 +804,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         startTypewriter(currentDialogueText);
 
         // Autosave at transitions
-        if (nodeId.endsWith("_TRANSITION") || nodeId.equals("CH1_DAY_NEXT") || nodeId.equals("CH1_INTRO") || 
+        if (nodeId.endsWith("_TRANSITION") || nodeId.equals("CH1_DAY_NEXT") || nodeId.equals("CH1_INTRO") ||
             nodeId.equals("CH2_START") || nodeId.equals("CH3_START") || nodeId.equals("CH4_START")) {
             triggerAutoSave();
         }
@@ -819,7 +819,7 @@ public class GameplayScreen implements Screen, InputProcessor {
                                 (gameState.lyrics.equals("sedih") && gameState.melody.equals("slow")) ||
                                 (gameState.lyrics.equals("semangat") && gameState.melody.equals("rock"));
             if (isPerfect) {
-                text = "Raksha: \"Selesai! Lirik " + gameState.lyrics + " dipadukan dengan melodi " + gameState.melody + " bener-bener harmonis.\"\n\nClara tersenyum puas mendengarnya. \"Lagu ini sempurna, Raka. Kita pasti bisa!\"";
+                text = "Raksha: \"Selesai! Lirik " + gameState.lyrics + " dipadukan dengan melodi " + gameState.melody + " bener-bener harmonis.\"\n\nClara tersenyum puas mendengarnya. \"Lagu ini sempurna, Raksha. Kita pasti bisa!\"";
             } else {
                 text = "Raksha: \"Hah... Lirik " + gameState.lyrics + " dipadukan dengan melodi " + gameState.melody + " rasanya agak kurang pas.\"\n\nClara melipat tangannya, menghela napas. \"Agak canggung sih, tapi ya sudahlah, kita gak punya banyak waktu lagi.\"";
             }
@@ -827,7 +827,7 @@ public class GameplayScreen implements Screen, InputProcessor {
             if (gameState.claraRel >= 8) {
                 text = "Raksha: \"Clara! Bernyanyilah bersamaku!\"\n\nClara menatapku terkejut, namun kemudian mengangguk mantap. Dia mendekati mikrofon dan mulai menyanyi. Suara kami berpadu indah, membuat penonton bersorak kagum!";
             } else {
-                text = "Raksha: \"Clara! Bernyanyilah bersamaku!\"\n\nClara menggeleng panik. \"Gue gak bisa, Raka! Gue gak pernah nyanyi di depan orang banyak!\"\n\nSuasana panggung menjadi sangat canggung dan tempo berantakan...";
+                text = "Raksha: \"Clara! Bernyanyilah bersamaku!\"\n\nClara menggeleng panik. \"Gue gak bisa, Raksha! Gue gak pernah nyanyi di depan orang banyak!\"\n\nSuasana panggung menjadi sangat canggung dan tempo berantakan...";
             }
         }
         return text;
@@ -944,7 +944,7 @@ public class GameplayScreen implements Screen, InputProcessor {
                 saveSuccessTimer -= delta;
             }
         }
-        
+
         switch (drawState) {
             case EXPLORATION_STATE:
                 if (state != GameplayState.PAUSED_STATE) updateExploration(delta);
@@ -975,75 +975,75 @@ public class GameplayScreen implements Screen, InputProcessor {
             renderPhoneMenu();
         }
     }
-    
+
     private void renderPauseMenu() {
         Gdx.gl.glEnable(GL20.GL_BLEND);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(new Color(0f, 0f, 0f, 0.7f));
         shapeRenderer.rect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
-        
+
         float menuW = 400f;
         float menuH = 450f;
         float mx = (VIRTUAL_WIDTH - menuW) / 2f;
         float my = (VIRTUAL_HEIGHT - menuH) / 2f;
-        
+
         shapeRenderer.setColor(new Color(0.1f, 0.12f, 0.18f, 1f));
         shapeRenderer.rect(mx, my, menuW, menuH);
-        
+
         // Buttons
         float btnW = 200f;
         float btnH = 50f;
         float bx = (VIRTUAL_WIDTH - btnW) / 2f;
-        
+
         shapeRenderer.setColor(Color.LIGHT_GRAY);
         // Resume & Exit
         shapeRenderer.rect(bx, my + 350, btnW, btnH); // Resume
         shapeRenderer.rect(bx, my + 95,  btnW, 45);   // Save Game
         shapeRenderer.rect(bx, my + 40,  btnW, btnH); // Exit
-        
+
         // Volume
         shapeRenderer.rect(bx - 60, my + 260, 40, 40); // Vol -
         shapeRenderer.rect(bx + btnW + 20, my + 260, 40, 40); // Vol +
-        
+
         // Difficulty
         int diff = SettingsManager.getDifficulty();
         shapeRenderer.setColor(diff == 0 ? Color.YELLOW : Color.LIGHT_GRAY);
         shapeRenderer.rect(mx + 20, my + 150, 100, 40); // Easy
-        
+
         shapeRenderer.setColor(diff == 1 ? Color.YELLOW : Color.LIGHT_GRAY);
         shapeRenderer.rect(mx + 150, my + 150, 100, 40); // Medium
-        
+
         shapeRenderer.setColor(diff == 2 ? Color.YELLOW : Color.LIGHT_GRAY);
         shapeRenderer.rect(mx + 280, my + 150, 100, 40); // Hard
-        
+
         shapeRenderer.end();
-        
+
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(Color.WHITE);
         shapeRenderer.rect(mx, my, menuW, menuH);
         shapeRenderer.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
-        
+
         game.getBatch().begin();
         choiceFont.setColor(Color.WHITE);
         choiceFont.draw(game.getBatch(), "PAUSED", mx, my + menuH - 20, menuW, Align.center, false);
-        
+
         choiceFont.setColor(Color.BLACK);
         choiceFont.draw(game.getBatch(), "Resume", bx, my + 350 + 35, btnW, Align.center, false);
         choiceFont.draw(game.getBatch(), "Simpan Permainan", bx, my + 95 + 32, btnW, Align.center, false);
         choiceFont.draw(game.getBatch(), "Exit to Menu", bx, my + 40 + 35, btnW, Align.center, false);
-        
+
         choiceFont.draw(game.getBatch(), "-", bx - 60, my + 260 + 28, 40, Align.center, false);
         choiceFont.draw(game.getBatch(), "+", bx + btnW + 20, my + 260 + 28, 40, Align.center, false);
-        
+
         choiceFont.draw(game.getBatch(), "Easy", mx + 20, my + 150 + 28, 100, Align.center, false);
         choiceFont.draw(game.getBatch(), "Medium", mx + 150, my + 150 + 28, 100, Align.center, false);
         choiceFont.draw(game.getBatch(), "Hard", mx + 280, my + 150 + 28, 100, Align.center, false);
-        
+
         choiceFont.setColor(Color.WHITE);
         choiceFont.draw(game.getBatch(), "Volume: " + Math.round(SettingsManager.getVolume() * 100f) + "%", bx, my + 260 + 28, btnW, Align.center, false);
         choiceFont.draw(game.getBatch(), "Difficulty", mx, my + 150 + 70, menuW, Align.center, false);
-        
+
         game.getBatch().end();
     }
 
@@ -1070,7 +1070,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         // Phone Shell (Dark Slate)
         shapeRenderer.setColor(0.11f, 0.13f, 0.16f, 1f);
         shapeRenderer.rect(px - 7, py - 7, phoneW + 14, phoneH + 14);
-        
+
         // Screen Background (WhatsApp Dark Mode: #111B21)
         shapeRenderer.setColor(0.07f, 0.11f, 0.13f, 1f); // #111B21
         shapeRenderer.rect(px, py, phoneW, phoneH);
@@ -1403,7 +1403,7 @@ public class GameplayScreen implements Screen, InputProcessor {
                     choiceFont.setColor(new Color(1f, 0.8f, 0.9f, 1f));
                     choiceFont.draw(batch, "Clara ❤️:", px + 20, topY - 200f);
                     choiceFont.setColor(Color.WHITE);
-                    choiceFont.draw(batch, "Aaaa Raka beneran bikin salting bangeett! I love you so much ❤️❤️❤️\n(Hubungan Clara +2)", px + 20, topY - 220f, phoneW - 50f, Align.left, true);
+                    choiceFont.draw(batch, "Aaaa Raksha beneran bikin salting bangeett! I love you so much ❤️❤️❤️\n(Hubungan Clara +2)", px + 20, topY - 220f, phoneW - 50f, Align.left, true);
 
                     choiceFont.getData().setScale(0.62f);
                     choiceFont.setColor(Color.LIGHT_GRAY);
@@ -1431,7 +1431,7 @@ public class GameplayScreen implements Screen, InputProcessor {
                 choiceFont.setColor(new Color(0.6f, 0.8f, 1f, 1f));
                 choiceFont.draw(batch, "Bagas:", px + 20, topY - 8);
                 choiceFont.setColor(Color.WHITE);
-                choiceFont.draw(batch, "Oi Raka! Tempo drum kemarin makin rapi kan? Gas pol latihan berikutnya bro!", px + 20, topY - 28, phoneW - 50f, Align.left, true);
+                choiceFont.draw(batch, "Oi Raksha! Tempo drum kemarin makin rapi kan? Gas pol latihan berikutnya bro!", px + 20, topY - 28, phoneW - 50f, Align.left, true);
 
                 choiceFont.setColor(new Color(0.5f, 1f, 0.6f, 1f));
                 choiceFont.draw(batch, "Raksha (kamu):", px + 20, topY - 88f);
@@ -1448,7 +1448,7 @@ public class GameplayScreen implements Screen, InputProcessor {
                 choiceFont.setColor(new Color(0.85f, 0.6f, 1f, 1f));
                 choiceFont.draw(batch, "Sherly:", px + 20, topY - 8);
                 choiceFont.setColor(Color.WHITE);
-                choiceFont.draw(batch, "Raka, jadwal promo sosmed dan kelengkapan studio Echo Summer beres. Jangan telat latihan!", px + 20, topY - 28, phoneW - 50f, Align.left, true);
+                choiceFont.draw(batch, "Raksha, jadwal promo sosmed dan kelengkapan studio Echo Summer beres. Jangan telat latihan!", px + 20, topY - 28, phoneW - 50f, Align.left, true);
 
                 choiceFont.setColor(new Color(0.5f, 1f, 0.6f, 1f));
                 choiceFont.draw(batch, "Raksha (kamu):", px + 20, topY - 98f);
@@ -1521,7 +1521,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         nearBed   = (currentZone == ExplorationZone.KOST)   && rakshaX >= 820f && rakshaX <= 1160f;
         nearClara = (currentZone == ExplorationZone.DALAM_STUDIO || currentZone == ExplorationZone.UKM_MUSIK || currentZone == ExplorationZone.KAMPUS) && (currentZone == ExplorationZone.DALAM_STUDIO ? rakshaX >= 150f : rakshaX >= 700f);
         nearKostGate = (currentZone == ExplorationZone.KOST_OUTSIDE) && rakshaX >= 480f && rakshaX <= 750f;
-        
+
         nearRania  = canSeeRania()  && (currentZone == ExplorationZone.STUDIO_SENI) && Math.abs(rakshaX - raniaX) < 150f;
         nearSherly = canSeeSherly() && (currentZone == ExplorationZone.KEDAI_KOPI)  && Math.abs(rakshaX - sherlyX) < 150f;
         nearBagas  = canSeeBagas()  && (currentZone == ExplorationZone.KANTIN)      && Math.abs(rakshaX - bagasX) < 150f;
@@ -1769,10 +1769,10 @@ public class GameplayScreen implements Screen, InputProcessor {
                 // Fully black — switch zone and spawn Raksha at correct side
                 ExplorationZone oldZone = currentZone;
                 currentZone = pendingZone;
-                
+
                 // Sync currentBackground to matched zone
                 currentBackground = getZoneTexture(currentZone);
-                
+
                 if (pendingZone == ExplorationZone.KOST) {
                     rakshaX = VIRTUAL_WIDTH - 150f;
                     rakshaFacingRight = false;
@@ -1868,7 +1868,7 @@ public class GameplayScreen implements Screen, InputProcessor {
                         loadNode("CH3_ALDO_1");
                     }
                 } else {
-                    rakshaX = 150f; 
+                    rakshaX = 150f;
                     rakshaFacingRight = true;
                 }
                 zoneTransFadingOut = false;
@@ -1902,13 +1902,13 @@ public class GameplayScreen implements Screen, InputProcessor {
         float rakshaSpriteIdle = 1150f;
         float rakshaSpriteWalk = 1405f;
         float claraSpriteSize  = 1150f;
-        
+
         float idleDrawY, walkDrawY, claraDrawY;
 
         switch (currentZone) {
             case KOST:
                 // Floor level is higher up, not in the black bar
-                idleDrawY  = -320f; 
+                idleDrawY  = -320f;
                 walkDrawY  = -450f;
                 claraDrawY = -320f;
                 break;
@@ -2237,7 +2237,7 @@ public class GameplayScreen implements Screen, InputProcessor {
             else if (nearStudioDoor) promptText = "[ W ]  Masuk ke Studio Musik";
             else if (nearStudioExit) promptText = "[ W ]  Keluar ke Luar Studio";
 
-            
+
             float promptW = 460f;
             float promptX = (VIRTUAL_WIDTH - promptW) / 2f;
             float promptY = VIRTUAL_HEIGHT / 2f + 50f;
@@ -2319,7 +2319,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         }
 
         SpriteBatch batch = game.getBatch();
-        
+
         // 1. Draw Background
         batch.begin();
         if (currentBackground != null) {
@@ -2345,7 +2345,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         GlyphLayout textLayout = new GlyphLayout(dialogueFont, currentDialogueText != null ? currentDialogueText : "", Color.WHITE, boxW - 80f, Align.left, true);
         float reqH = textLayout.height + 70f;
         float boxH = Math.max(160f, Math.min(310f, reqH));
-        
+
         String speechContent = typedText;
         String speakerName = currentSpeakerName;
 
@@ -2369,27 +2369,27 @@ public class GameplayScreen implements Screen, InputProcessor {
         float nx4 = nameX, ny4 = nameY + nameH;
 
         Gdx.gl.glEnable(GL20.GL_BLEND);
-        
+
         // 1. Draw Fills
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(new Color(0.0f, 0.0f, 0.0f, 0.95f)); // Solid Black
-        
+
         // Main Box Fill
         shapeRenderer.triangle(cx1, cy1, cx2, cy2, cx3, cy3);
         shapeRenderer.triangle(cx1, cy1, cx3, cy3, cx4, cy4);
-        
+
         // Name Box Fill
         if (speakerName != null && !speakerName.isEmpty()) {
             shapeRenderer.triangle(nx1, ny1, nx2, ny2, nx3, ny3);
             shapeRenderer.triangle(nx1, ny1, nx3, ny3, nx4, ny4);
         }
         shapeRenderer.end();
-        
+
         // 2. Draw Continuous Border
         Gdx.gl.glLineWidth(5f); // Thicker outline
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(Color.WHITE);
-        
+
         if (speakerName != null && !speakerName.isEmpty()) {
             // Continuous perimeter
             shapeRenderer.line(cx1, cy1, cx2, cy2); // Bottom
@@ -2403,7 +2403,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         } else {
             shapeRenderer.polygon(new float[]{ cx1, cy1, cx2, cy2, cx3, cy3, cx4, cy4 });
         }
-        
+
         shapeRenderer.end();
         Gdx.gl.glLineWidth(1f);
         Gdx.gl.glDisable(GL20.GL_BLEND);
@@ -2416,7 +2416,7 @@ public class GameplayScreen implements Screen, InputProcessor {
                 dialogueFont.getData().setScale(1.25f);
                 dialogueFont.draw(batch, speakerName, nameX + 30f, nameY + 36f);
                 dialogueFont.getData().setScale(1.0f);
-                
+
                 dialogueFont.draw(batch, speechContent, boxX + 60f, boxY + boxH - 35f, boxW - 80f, Align.left, true);
             } else {
                 dialogueFont.setColor(Color.WHITE);
@@ -2873,7 +2873,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         Gdx.gl.glEnable(GL20.GL_BLEND);
         shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        
+
         // Full screen dimming backdrop with 94% dark navy opacity
         shapeRenderer.setColor(new Color(0.01f, 0.02f, 0.05f, 0.94f));
         shapeRenderer.rect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
@@ -2905,7 +2905,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         float rowY = cardY + cardH - 85f;
         for (DialogueNode node : dialogueHistoryStack) {
             if (node == null || count >= 7) break;
-            
+
             String speaker = (node.speaker != null && !node.speaker.trim().isEmpty()) ? node.speaker.trim() : "Narasi";
             boolean isNarrative = "Narasi".equals(speaker);
             font.setColor(isNarrative ? new Color(0.7f, 0.85f, 1.0f, 0.9f) : Color.GOLD);
@@ -2948,7 +2948,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         // Modal Card Body
         shapeRenderer.setColor(new Color(0.04f, 0.07f, 0.14f, 0.98f));
         shapeRenderer.rect(cardX, cardY, cardW, cardH);
-        
+
         // Header line accent
         shapeRenderer.setColor(new Color(0.1f, 0.65f, 0.45f, 0.95f));
         shapeRenderer.rect(cardX, cardY + cardH - 52f, cardW, 52f);
@@ -2990,7 +2990,7 @@ public class GameplayScreen implements Screen, InputProcessor {
             }
         }
         String pathText = sbPath.toString();
-        
+
         font.getData().setScale(0.85f);
         GlyphLayout pathLayout = new GlyphLayout(font, pathText);
         float maxUsableWidth = cardW - 80f;
@@ -3117,7 +3117,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         // Modal Card Background & Headers
         shapeRenderer.setColor(new Color(0.07f, 0.05f, 0.14f, 0.98f));
         shapeRenderer.rect(cardX, cardY, cardW, cardH);
-        
+
         // Header line accent
         shapeRenderer.setColor(new Color(0.85f, 0.6f, 0.1f, 0.95f));
         shapeRenderer.rect(cardX, cardY + cardH - 52f, cardW, 52f);
@@ -3331,7 +3331,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         viewport.unproject(touchPoint);
         float rx = touchPoint.x;
         float ry = touchPoint.y;
-        
+
         if (state == GameplayState.PAUSED_STATE) {
             float menuW = 400f;
             float menuH = 450f;
@@ -3724,11 +3724,11 @@ public class GameplayScreen implements Screen, InputProcessor {
 
     private String getClaraDailyChatMsg() {
         int d = gameState != null ? gameState.day : 30;
-        if (d == 30) return "Rakaaa! Hari ini semangat ya latihannya~ Aku udah gak sabar pengen ketemu kamu lagi nanti sore! Jangan lupa sarapan ya sayangku~ ❤️";
-        if (d >= 28) return "Raka, kamu tahu gak? Setiap kali aku ngeliat kamu petik gitar, jantungku rasanya mau melompat keluar... Kenapa sih kamu harus seganteng itu? 🙈";
-        if (d >= 26) return "Rakaaa... Nanti malem telfonan yuk sebelum tidur? Aku mau denger suara kamu biar tidurnya makin nyenyak~ 😴💖";
-        if (d >= 24) return "Raka, makasih ya udah selalu sabar nemenin dan dukung aku... Aku bersyukur banget bisa ketemu cowok sehebat dan se-sweet kamu 🥺❤️";
-        return "Raka sayang! Selamat hari baru~ Ingat ya, hari ini harus selalu senyum karena ada aku yang mendoakan kamu dari jauh! Luv u! 😘";
+        if (d == 30) return "Rakshaaa! Hari ini semangat ya latihannya~ Aku udah gak sabar pengen ketemu kamu lagi nanti sore! Jangan lupa sarapan ya sayangku~ ❤️";
+        if (d >= 28) return "Raksha, kamu tahu gak? Setiap kali aku ngeliat kamu petik gitar, jantungku rasanya mau melompat keluar... Kenapa sih kamu harus seganteng itu? 🙈";
+        if (d >= 26) return "Rakshaaa... Nanti malem telfonan yuk sebelum tidur? Aku mau denger suara kamu biar tidurnya makin nyenyak~ 😴💖";
+        if (d >= 24) return "Raksha, makasih ya udah selalu sabar nemenin dan dukung aku... Aku bersyukur banget bisa ketemu cowok sehebat dan se-sweet kamu 🥺❤️";
+        return "Raksha sayang! Selamat hari baru~ Ingat ya, hari ini harus selalu senyum karena ada aku yang mendoakan kamu dari jauh! Luv u! 😘";
     }
 
     private String getClaraReplyOptionA() {
@@ -3827,7 +3827,7 @@ public class GameplayScreen implements Screen, InputProcessor {
             }
         }
         loadCreditsJson();
-        
+
         // Auto Scroll synced to Gravits.mp3 music duration (~4m35s)
         float contentHeight = 140f;
         for (CreditSection sec : creditsList) {
@@ -4118,14 +4118,14 @@ public class GameplayScreen implements Screen, InputProcessor {
                     if (kv.length == 2) {
                         String charName = kv[0].trim().toLowerCase();
                         String exprName = kv[1].trim();
-                        
+
                         if (!exprName.contains("_")) {
                             exprName = "MAHASISWA_" + exprName;
                         }
-                        
+
                         if (charName.equals("clara")) {
                             claraExpression = exprName;
-                        } else if (charName.equals("raksha") || charName.equals("raka")) {
+                        } else if (charName.equals("raksha") || charName.equals("Raksha")) {
                             rakshaExpression = exprName;
                         } else if (charName.equals("sherly")) {
                             sherlyExpression = exprName;
@@ -4141,7 +4141,7 @@ public class GameplayScreen implements Screen, InputProcessor {
                 if (!exprName.contains("_")) {
                     exprName = "MAHASISWA_" + exprName;
                 }
-                
+
                 String lowerSpeaker = speaker != null ? speaker.toLowerCase() : "";
                 if ("clara".equalsIgnoreCase(speaker)) {
                     claraExpression = exprName;
@@ -4151,7 +4151,7 @@ public class GameplayScreen implements Screen, InputProcessor {
                     raniaExpression = exprName;
                 } else if ("bagas".equalsIgnoreCase(speaker)) {
                     bagasExpression = exprName;
-                } else if ("raksha".equalsIgnoreCase(speaker) || "raka".equalsIgnoreCase(speaker) || lowerSpeaker.contains("raksha") || lowerSpeaker.contains("raka")) {
+                } else if ("raksha".equalsIgnoreCase(speaker) || "Raksha".equalsIgnoreCase(speaker) || lowerSpeaker.contains("raksha") || lowerSpeaker.contains("Raksha")) {
                     rakshaExpression = exprName;
                 } else {
                     // Update all to default if no speaker
@@ -4174,7 +4174,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         this.transChapterSubtitle = chSubtitle;
         this.transNextState = nextState;
         this.transNextNode = nextNode;
-        
+
         this.transPhase = 0;
         this.transTime = 0;
         this.transAlpha = 0;
@@ -4183,7 +4183,7 @@ public class GameplayScreen implements Screen, InputProcessor {
 
     private void updateCinematicTransition(float delta) {
         transTime += delta;
-        
+
         switch (transPhase) {
             case 0: // Fade Out previous screen (0.5s)
                 transAlpha = Math.min(1.0f, transTime / 0.5f);
@@ -4201,7 +4201,7 @@ public class GameplayScreen implements Screen, InputProcessor {
                     }
                 }
                 break;
-                
+
             case 1: // Narrative Text (Fade in 1.0s, hold 3.0s, fade out 1.0s)
                 if (transTime < 1.0f) {
                     transAlpha = transTime / 1.0f;
@@ -4221,7 +4221,7 @@ public class GameplayScreen implements Screen, InputProcessor {
                     }
                 }
                 break;
-                
+
             case 2: // Day Count Phase (Fade in 0.5s, countdown 0.6s, hold 0.6s, fade out 0.5s)
                 if (transTime < 0.5f) {
                     transAlpha = transTime / 0.5f;
@@ -4242,7 +4242,7 @@ public class GameplayScreen implements Screen, InputProcessor {
                     }
                 }
                 break;
-                
+
             case 3: // Chapter Title Phase (Fade in 0.8s, hold 2.5s, fade out 0.8s)
                 if (transTime < 0.8f) {
                     transAlpha = transTime / 0.8f;
@@ -4256,7 +4256,7 @@ public class GameplayScreen implements Screen, InputProcessor {
                     transPhase = 4;
                 }
                 break;
-                
+
             case 4: // Fade In new screen (0.5s)
                 transAlpha = Math.min(1.0f, transTime / 0.5f);
                 if (transTime >= 0.5f) {
@@ -4299,14 +4299,14 @@ public class GameplayScreen implements Screen, InputProcessor {
 
     private void renderCinematicTransition(float delta) {
         SpriteBatch batch = game.getBatch();
-        
+
         if (transPhase == 0) {
             batch.begin();
             if (currentBackground != null) {
                 batch.draw(currentBackground, 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
             }
             batch.end();
-            
+
             Gdx.gl.glEnable(GL20.GL_BLEND);
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
             shapeRenderer.setColor(0f, 0f, 0f, transAlpha);
@@ -4334,7 +4334,7 @@ public class GameplayScreen implements Screen, InputProcessor {
                 batch.draw(nextBg, 0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
             }
             batch.end();
-            
+
             Gdx.gl.glEnable(GL20.GL_BLEND);
             shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
             shapeRenderer.setColor(0f, 0f, 0f, 1.0f - transAlpha);
@@ -4344,7 +4344,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         } else {
             Gdx.gl.glClearColor(0f, 0f, 0f, 1f);
             Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-            
+
             batch.begin();
             if (transPhase == 1) {
                 dialogueFont.setColor(1f, 1f, 1f, transAlpha);
@@ -4353,15 +4353,15 @@ public class GameplayScreen implements Screen, InputProcessor {
                 dialogueFont.getData().setScale(1.0f);
             } else if (transPhase == 2) {
                 int currentDayDisplay = Math.round(transNumberDisplay);
-                
+
                 dialogueFont.setColor(0.3f, 0.8f, 1.0f, transAlpha * 0.85f);
                 dialogueFont.getData().setScale(1.1f);
                 dialogueFont.draw(batch, "⏳ SISA WAKTU MENJELANG FESTIVAL", 0f, VIRTUAL_HEIGHT / 2f + 90f, VIRTUAL_WIDTH, Align.center, false);
-                
+
                 dialogueFont.setColor(0.2f, 0.95f, 0.5f, transAlpha);
                 dialogueFont.getData().setScale(2.5f);
                 dialogueFont.draw(batch, "SISA HARI: " + currentDayDisplay, 0f, VIRTUAL_HEIGHT / 2f + 20f, VIRTUAL_WIDTH, Align.center, false);
-                
+
                 dialogueFont.setColor(1.0f, 0.9f, 0.4f, transAlpha * 0.9f);
                 dialogueFont.getData().setScale(1.0f);
                 String quote = getDayTransitionQuote(currentDayDisplay);
@@ -4373,7 +4373,7 @@ public class GameplayScreen implements Screen, InputProcessor {
                 dialogueFont.getData().setScale(1.3f);
                 dialogueFont.setColor(1f, 1f, 1f, transAlpha);
                 dialogueFont.draw(batch, "\"" + transChapterSubtitle + "\"", 0f, VIRTUAL_HEIGHT / 2f - 10f, VIRTUAL_WIDTH, Align.center, false);
-                
+
                 dialogueFont.setColor(1.0f, 0.9f, 0.4f, transAlpha * 0.85f);
                 dialogueFont.getData().setScale(1.0f);
                 String chapterQuote = getDayTransitionQuote(transToDay);
@@ -4383,7 +4383,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         }
     }
 
-    
+
     private String getCurrentQuest() {
         if (gameState == null) return "";
         if (gameState.day <= 0) gameState.day = 30;
@@ -4420,7 +4420,7 @@ public class GameplayScreen implements Screen, InputProcessor {
         if (gameState.day == 5) return "🎯 Objektif (Hari 5): Bukti Aldo terungkap (Di Kamar Kost).";
         if (gameState.day == 3) return "🎯 Objektif (Hari 3): Latihan terakhir (Di Kamar Kost).";
         if (gameState.day == 1) return "🎯 Objektif (Hari 1): Echo Fest Panggung Festival! (Menuju Panggung Kantin Kampus).";
-        
+
         return "🎯 Objektif (Hari " + gameState.day + "): Latihan Gitar di Kamar Kost [E] / Cek HP [TAB].";
     }
 
@@ -4429,62 +4429,62 @@ public class GameplayScreen implements Screen, InputProcessor {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(new Color(0f, 0f, 0f, 0.7f));
         shapeRenderer.rect(0, 0, VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
-        
+
         float menuW = 400f;
         float menuH = 450f;
         float mx = (VIRTUAL_WIDTH - menuW) / 2f;
         float my = (VIRTUAL_HEIGHT - menuH) / 2f;
-        
+
         shapeRenderer.setColor(new Color(0.1f, 0.12f, 0.18f, 1f));
         shapeRenderer.rect(mx, my, menuW, menuH);
-        
+
         // Slot buttons
         float btnW = 300f;
         float btnH = 60f;
         float bx = (VIRTUAL_WIDTH - btnW) / 2f;
-        
+
         shapeRenderer.setColor(Color.LIGHT_GRAY);
         shapeRenderer.rect(bx, my + 280, btnW, btnH);
         shapeRenderer.rect(bx, my + 190, btnW, btnH);
         shapeRenderer.rect(bx, my + 100, btnW, btnH);
-        
+
         shapeRenderer.setColor(Color.DARK_GRAY);
         shapeRenderer.rect(bx, my + 30, btnW, 45);
-        
+
         shapeRenderer.end();
-        
+
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(Color.WHITE);
         shapeRenderer.rect(mx, my, menuW, menuH);
         shapeRenderer.end();
         Gdx.gl.glDisable(GL20.GL_BLEND);
-        
+
         game.getBatch().begin();
         choiceFont.setColor(Color.WHITE);
         choiceFont.draw(game.getBatch(), "PILIH SLOT SIMPAN", mx, my + menuH - 20, menuW, Align.center, false);
-        
+
         String meta1 = SaveManager.getSaveMetadata("savegame_1.dat");
         String meta2 = SaveManager.getSaveMetadata("savegame_2.dat");
         String meta3 = SaveManager.getSaveMetadata("savegame_3.dat");
-        
+
         choiceFont.setColor(Color.BLACK);
         choiceFont.draw(game.getBatch(), "SLOT 1", bx, my + 280 + 50, btnW, Align.center, false);
         choiceFont.draw(game.getBatch(), "SLOT 2", bx, my + 190 + 50, btnW, Align.center, false);
         choiceFont.draw(game.getBatch(), "SLOT 3", bx, my + 100 + 50, btnW, Align.center, false);
-        
+
         font.setColor(Color.DARK_GRAY);
         font.draw(game.getBatch(), meta1.replace("\n", "  |  "), bx, my + 280 + 22, btnW, Align.center, false);
         font.draw(game.getBatch(), meta2.replace("\n", "  |  "), bx, my + 190 + 22, btnW, Align.center, false);
         font.draw(game.getBatch(), meta3.replace("\n", "  |  "), bx, my + 100 + 22, btnW, Align.center, false);
-        
+
         choiceFont.setColor(Color.WHITE);
         choiceFont.draw(game.getBatch(), "Kembali", bx, my + 30 + 32, btnW, Align.center, false);
-        
+
         if (saveSuccessTimer > 0) {
             font.setColor(Color.YELLOW);
             font.draw(game.getBatch(), "Game Berhasil Disimpan di Slot " + savedSlotNum + "!", mx, my + 78, menuW, Align.center, false);
         }
-        
+
         game.getBatch().end();
     }
 
